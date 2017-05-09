@@ -23,16 +23,16 @@ Please follow these steps.
   Then it runs Picard's CollectInsertSizeMetrics module to get the insert size characteristics for each sample's sequencing run. After running this module, a pdf histogram and a txt files are produced showing the insert size distribution. You have to decide the minimum and maximum insert size length for each sample by checking the points where the slope starts to increase and decrease rapidly (minimum and maximum insert size length respectively).
   minins is the minimum fragment length for a valid paired-end alignment.
   maxins is the maximum fragment length for a valid paired-end alignment, check Bowtie2 manual page.
-  Once you have decided the minins and maxins parameters, specify them in `samples2test` file for each sample_id as the second and third column respectively.
+  Once you have decided the minins and maxins parameters, specify them in `samples2test` file for each sample_id as the second and third tab-separated columns respectively.
 
   2) Execute the 2nd run of this script: 
   
   `./runMapping_WGS.sh 'TM'` (The 'TM' runs trimming and mapping only). 
   
- Once correctly completed, the files *_bowtie2_readpos.stats are produced by using NGSEP-QualStats. Plot these results. You have to decide the I5prime and I3prime parameters by looking at how many consecutive positions in the 5' end and the 3' end have a high sequencing error bias (guide yourself by the behavior of the slope).
+ Once correctly completed, the files `*_bowtie2_readpos.stats` are produced by using NGSEP-QualStats. Plot these results. You have to decide the I5prime and I3prime parameters by looking at how many consecutive positions in the 5' end and the 3' end have a high sequencing error bias (guide yourself by the behavior of the slope).
   I5prime is to ignore this many base pairs from the 5' end of the reads.
   I3prime is to ignore this many base pairs from the 3' end of the reads, check NGSEP manual page.
-  Once you have decided the I5prime and I3prime parameters, specify them in 'samples2test' for each sample_id as the fourth and fifth column respectively.
+  Once you have decided the I5prime and I3prime parameters, specify them in 'samples2test' for each sample_id as the fourth and fifth tab-separated columns respectively.
 
   3) Exectute the 3rd run of this script:
   
