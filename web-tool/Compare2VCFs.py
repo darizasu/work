@@ -12,26 +12,25 @@ arguments = parser.parse_args()
 # inputCmpVCF = arguments.VCF1
 # outputFile = arguments.VCF2
 
-def getLineInfo(sample,minQ=60):
-	GQ = int(sample[-1].split(':')[sample[8].split(':').index('GQ')])
-	if GQ <= minQ or sample[0].startswith('scaffold'):
-		return None
-	GT = sample[-1].split(':')[sample[8].split(':').index('GT')].split('/')
-	REFALT = [i for i in sample[4].split(',')]
-	REFALT.insert(0, sample[3])
+def getLineInfo(line,minQ=40):
+	GQ = int(line[-1].split(':')[line[8].split(':').index('GQ')])
+	# if GQ <= minQ: #or line[0].startswith('scaffold'):
+		# return None
+	GT = line[-1].split(':')[line[8].split(':').index('GT')].split('/')
+	REFALT = [i for i in line[4].split(',')]
+	REFALT.insert(0, line[3])
 	GT[0], GT[1] = REFALT[int(GT[0])], REFALT[int(GT[1])]
-	sample[0] = sample[0].replace('Chr', '')
-	return [sample[0],sample[1],GT,int(GQ)]
+	# line[0] = line[0].replace('Chr', '')
+	return [line[0] + ':' + line[1],GT,int(GQ)]
 
 def addZygocity(line1, line2):
-	line1 = getLineInfo(line1)
-	line2 = getLineInfo(line2)
 	if line1 and line2:
-		mySet1 = set(line1[2])
-		mySet2 = set(line2[2])
-		line1[2] = line1[2][0] + '/' + line1[2][1]
-		line2[2] = line2[2][0] + '/' + line2[2][1]
-		line1[3] = line2[2]
+		mySet1 = set(line1[1])
+		mySet2 = set(line2[1])
+		line1[1] = line1[1][0] + '/' + line1[1][1]
+		line2[1] = line2[1][0] + '/' + line2[1][1]
+		line1[2] = line2[1]
+		line1 = line1[0].split(':') + line1[1:]
 		if mySet1 == mySet2:
 			line1.append('noDiff')
 			return line1
@@ -48,41 +47,28 @@ def addZygocity(line1, line2):
 		None
 
 def getCommonSNPs(inputVCF1, inputVCF2):
-	def getLine(string):
-		return string.readline().decode().strip().split('\t')
 	print('chromosome','position','sample1','sample2','diffType', sep='\t')
 	with gzip.open(inputVCF1,'r') as inFile1, gzip.open(inputVCF2, 'r') as inFile2:
-		theLine1 = getLine(inFile1)
-		theLine2 = getLine(inFile2)
-		while theLine1 or theLine2:
-			if theLine1 == [''] or theLine2 == ['']:
-				break
-			elif (theLine1[0][0] == '#') or (theLine2[0][0] == '#'):
-				theLine1 = getLine(inFile1)
-				theLine2 = getLine(inFile2)
-				continue
-			elif theLine1[0] == theLine2[0]:
-				currentChrom = theLine1[0]
-				if int(theLine1[1]) == int(theLine2[1]):
-					list2print = addZygocity(theLine1, theLine2)
-					print(*list2print, sep='\t') if list2print else None
-					theLine1 = getLine(inFile1)
-					theLine2 = getLine(inFile2)
-					continue
-				elif int(theLine1[1]) > int(theLine2[1]):
-					theLine2 = getLine(inFile2)
-					continue
-				elif int(theLine1[1]) < int(theLine2[1]):
-					theLine1 = getLine(inFile1)
-					continue
-			elif theLine2[0] != currentChrom:
-				theLine1 = getLine(inFile1)
-				continue
-			elif theLine1[0] != currentChrom:
-				theLine2 = getLine(inFile2)
+		myDict = dict()
+		for line1 in inFile1:
+			theLine1 = line1.decode().strip().split('\t')
+			if theLine1[0][0] == '#':
 				continue
 			else:
-				break
+				theLine1 = getLineInfo(theLine1)
+				if theLine1 and not myDict.get(theLine1[0]):
+					myDict[theLine1[0]] = [theLine1]
+				elif theLine1 and myDict.get(theLine1[0]):
+					myDict[theLine1[0]].append(theLine1)
+		for line2 in inFile2:
+			theLine2 = line2.decode().strip().split('\t')
+			if theLine2[0][0] == '#':
+				continue
+			else:
+				theLine2 = getLineInfo(theLine2)
+				if theLine2 and myDict.get(theLine2[0]):
+					list2print = addZygocity(myDict[theLine2[0]].pop(0), theLine2)
+					print(*list2print, sep='\t') if list2print else None
 		return None
 
 try:
