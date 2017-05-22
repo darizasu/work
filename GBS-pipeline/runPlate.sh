@@ -22,7 +22,7 @@ runName=plate_13
 numThreads=20
 
 # Specify the task(s) you want to perform. Include only the initial capital letter in a single string.
-#It can include 'D'econvolution, 'T'rimming, 'M'apping, 'V'ariant-Discovery.
+# It can include 'D'econvolution, 'T'rimming, 'M'apping, 'V'ariant-Discovery.
 # To run all these analyses: ./runPlate.sh 'DTMV'
 TASKS=$1
 
@@ -54,6 +54,7 @@ STRs=/data/references/bean/v2.1/strs/Pvulgaris_442_v2.0.fa.2.7.7.80.10.20.50.ngs
 #### ---------------------------------------------------------------------- ####
 #### ----------- DO NOT MODIFY ANYTHING FROM THIS POINT FORWARD ----------- ####
 #### ---------------------------------------------------------------------- ####
+
 
 echo -e '\nThis run was executed by:  '$(whoami)'\n'
 
