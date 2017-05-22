@@ -1,7 +1,7 @@
 # WGS-pipeline
 This set of scripts are intended to run WGS pipeline from raw reads to the final VCF file
 ## runSamplesWGS.sh
-This wrapper script is intended to run Trimming (using Trimmomatic), Mapping (using Bowtie2) and FindVariants (using NGSEP) for a list of WGS samples.
+This wrapper script is intended to run a test to get Insert Length parameters (using CollectInsertSizeMetrics from Picard) Trimming (using Trimmomatic), Mapping (using Bowtie2) and FindVariants (using NGSEP) for a list of WGS samples.
 Please follow these instructions to run this script properly.
 First of all, you need to have installed [NGSEP](https://sourceforge.net/projects/ngsep/files/Library/) (tested with v.3.0.2), [Bowtie2](http://bowtie-bio.sourceforge.net/bowtie2/index.shtml) (tested with v2.2.9), [Picard](http://broadinstitute.github.io/picard/index.html) (tested with v.1.140) and [Trimmomatic](http://www.usadellab.org/cms/index.php?page=trimmomatic) (tested with v.0.36).
 
