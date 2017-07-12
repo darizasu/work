@@ -11,4 +11,4 @@ Please follow these steps:
 
 `./runPlate.sh 'DTM'`
 
-4) Run `calculateReadPos.sh` from the directory `${WD}/mapping
+4) Run `calculateReadPos.sh` from the directory `${WD}/mapping`
