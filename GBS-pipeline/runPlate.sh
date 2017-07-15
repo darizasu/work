@@ -5,21 +5,21 @@
 # This is the working directory full path. It should contain two directories: 
 # 'reads' and 'mapping'. 'reads' must have a subdirectory called 'lane', 
 # which contains the raw reads.
-WD=/bioinfo2/projects/GBSplates/13
+WD=/bioinfo1/projects/bean/GBSplates/21
 
 # This file should be located at ${WD}/reads/lane , otherwise its path must be specified. 
 # Check NGSEP Deconvolute <INDEX_FILE> parameter for more info.
-INDEXFILE=/bioinfo2/projects/GBSplates/13/reads/lane/barcodeMap_plate13.txt
+INDEXFILE=/bioinfo1/projects/bean/GBSplates/21/reads/lane/barcodeMap_plate21.txt
 
 # This file should be located at ${WD}/reads/lane , otherwise its path must be specified. 
 # Check NGSEP Deconvolute -d flag for more info.
-FILES2DECONV=/bioinfo2/projects/GBSplates/13/reads/lane/lanes_plate13.txt
+FILES2DECONV=/bioinfo1/projects/bean/GBSplates/21/reads/lane/lanes_plate21.txt
 
 # This is your plate's name
-runName=plate_13
+runName=plate_21
 
 # The number of subprocesses you want to run. It depends on the number of available cores.
-numThreads=20
+numThreads=10
 
 # Specify the task(s) you want to perform. Include only the initial capital letter in a single string.
 # It can include 'D'econvolution, 'T'rimming, 'M'apping, 'V'ariant-Discovery.
@@ -31,12 +31,12 @@ TASKS=$1
 # to get sequencing error bias for the entire plate and plot those results. Then decide the i5 
 # and i3 parameters and specify them in the following lines. 
 # Then run again this script with the task 'V'.
-i5=7
-i3=12
+i5=
+i3=
 
 # This file must (MUST) be located at ${WD}/reads. This is a fasta file containing adapter 
 # sequences to be removed from the deconvoluted reads. Check Trimmomatic manual for more info.
-adapters=adapters_13-15.fa
+adapters=adapters_21-26.fa
 
   # Path to Software used
 
@@ -48,7 +48,7 @@ Trimmomatic=/bioinfo1/software/Trimmomatic-0.36/trimmomatic-0.36.jar
   # Reference genome files
 
 REF=/data/references/bean/v2.1/bowtie2/Pvulgaris_442_v2.0.fa
-STRs=/data/references/bean/v2.1/strs/Pvulgaris_442_v2.0.fa.2.7.7.80.10.20.50.ngs
+STRs=/data/references/bean/v2.1/strs/Pvulgaris_v2_strs.list
 
 
 #### ---------------------------------------------------------------------- ####
@@ -77,18 +77,18 @@ echo -e 'This run contains the following samples:\n'${list[@]}'\n'
 # called tmpList_XXX.tmp that contains chunks of the original list of samples.
 # It won't continue until all the sublists have finished.
 function assignThreads {
-  for index in ${!list[@]}
-  do  samplesPerList=`expr ${index} % ${numThreads}`
-    echo ${list[${index}]} >> tmpList_${samplesPerList}.tmp
+  for i in ${!list[@]}
+  do  samplesPerList=`expr ${i} % ${numThreads}`
+    echo ${list[${i}]} >> tmpList_${samplesPerList}.tmp
   done
 }
 
 # Check there are reads for every sample, exit otherwise.
 function doWeHaveReads {
   numErrors=0
-  for index in ${!list[@]}
-  do if ! ls ${WD}/reads/${list[${index}]}*.fastq.gz > /dev/null 2>&1
-    then numErrors=`expr ${numErrors} + 1`; echo 'Error: The sample '${list[${index}]}' does not have reads'
+  for i in ${!list[@]}
+  do if ! ls ${WD}/reads/${list[${i}]}*.fastq.gz > /dev/null 2>&1
+    then numErrors=`expr ${numErrors} + 1`; echo 'Error: The sample '${list[${i}]}' does not have reads'
   fi; done
   if [[ ${numErrors} > 0 ]]; then echo 'Error: There are '${numErrors}' samples with no reads at '${WD}'/reads/'; exit 1; fi
 }
@@ -127,7 +127,6 @@ then
 
   echo -e '\nStarting trimming on '${runName}' files'$(date)'\n'
   mkdir unTrimmed_reads
-  mv ./*.fastq.gz ./unTrimmed_reads
 
   echo 'Total number of samples: '${#list[@]}
 
@@ -150,19 +149,21 @@ then
       if [[ ${SEorPE} == 3 ]]; # For single-end sequencing
       then
 
-        echo $(date) 'Trimming reads from '${p}
-        java -jar ${Trimmomatic} SE -threads 1 -quiet \
-        ${WD}/reads/unTrimmed_reads/${p}.fastq.gz ${WD}/reads/${p}.fastq.gz \ 
-        ILLUMINACLIP:${adapters}:2:20:9:2 LEADING:5 TRAILING:5 SLIDINGWINDOW:4:5 MINLEN:36
-
-      else; # For paired-end sequencing
+        mv ./${p}.fastq.gz ./unTrimmed_reads
 
         echo $(date) 'Trimming reads from '${p}
-        java -jar ${Trimmomatic} PE -threads 1 -quiet \
+        java -jar ${Trimmomatic} SE -threads 1 ${WD}/reads/unTrimmed_reads/${p}.fastq.gz \
+        ${WD}/reads/${p}.fastq.gz ILLUMINACLIP:${adapters}:2:20:9:2 LEADING:5 TRAILING:5 SLIDINGWINDOW:4:5 MINLEN:36 > ${p}_trimmomatic.log 2>&1
+
+      else # For paired-end sequencing
+
+        mv -t ./unTrimmed_reads ./${p}_1.fastq.gz ./${p}_2.fastq.gz
+
+        echo $(date) 'Trimming reads from '${p}
+        java -jar ${Trimmomatic} PE -threads 1 \
         ${WD}/reads/unTrimmed_reads/${p}_1.fastq.gz ${WD}/reads/unTrimmed_reads/${p}_2.fastq.gz \
-        ${WD}/reads/${p}_1.fastq.gz ${WD}/reads/${p}_U1.fastq.gz \
-        ${WD}/reads/${p}_2.fastq.gz ${WD}/reads/${p}_U2.fastq.gz \
-        ILLUMINACLIP:${adapters}:2:20:9:2 LEADING:5 TRAILING:5 SLIDINGWINDOW:4:5 MINLEN:36
+        ${WD}/reads/${p}_1.fastq.gz ${WD}/reads/${p}_U1.fastq.gz ${WD}/reads/${p}_2.fastq.gz \
+        ${WD}/reads/${p}_U2.fastq.gz ILLUMINACLIP:${adapters}:2:20:9:2 LEADING:5 TRAILING:5 SLIDINGWINDOW:4:5 MINLEN:36 > ${p}_trimmomatic.log 2>&1
 
         # Concatenate unpaired reads in a single file for every sample
         cat ${WD}/reads/${p}_U1.fastq.gz ${WD}/reads/${p}_U2.fastq.gz > ${WD}/reads/${p}_U.fastq.gz
@@ -179,12 +180,20 @@ then
 
   ################
   doWeHaveReads
+
+  for i in ${!myList[@]}; do
+    if [[ ! `tail -1 ${myList[${i}]}_trimmomatic.log` == *Completed* ]]
+      then echo "Error: There was a Trimmomatic error for "${myList[${i}]}; exit 1
+    fi
+  done
+
   ################
 
-  # Remove untrimmed reads. Comment this line to avoid this behavior.
+  # Remove untrimmed reads and trimmomatic logs. Comment this line to avoid this behavior.
   rm -rf unTrimmed_reads
+  rm *_trimmomatic.log
 
-  echo -e '\nTrimming on  '${runName}' files seems to be completed'$(date)'\n'
+  echo -e '\nTrimming on  '${runName}' files seems to be completed '$(date)'\n'
 
 else
 
@@ -234,7 +243,7 @@ then
         java -Xmx3g -jar ${PICARD} SortSam MAX_RECORDS_IN_RAM=1000000 SO=coordinate CREATE_INDEX=true\
         TMP_DIR=${p}_tmpdir I=/dev/stdin O=${p}_bowtie2_sorted.bam >& ${p}_bowtie2_sort.log
 
-      else; # For paired-end sequencing
+      else # For paired-end sequencing
 
         # Check that the unpaired file of reads for every sample (which was produced after trimming) exists.
         # If so, put the bowtie2 -U flag with its full location into the 'unpairandtrimmed' variable.
@@ -270,10 +279,10 @@ then
   ################
   # Check mapping failures
   numErrors=0
-  for index in ${!list[@]}
-  do if [[ ! `tail -1 ${list[${index}]}_bowtie2_coverage.stats` == *More* ]]
+  for i in ${!list[@]}
+  do if [[ ! `tail -1 ${list[${i}]}_bowtie2_coverage.stats` == *More* ]]
     then numErrors=`expr ${numErrors} + 1`
-    echo 'Error: Mapping for sample '${list[${index}]}' failed at some point !!'
+    echo 'Error: Mapping for sample '${list[${i}]}' failed at some point !!'
   fi; done
   if [[ ${numErrors} > 0 ]]; then echo 'Error: Mapping failed for '${numErrors}' samples'; exit 1; fi
   ################
@@ -332,10 +341,10 @@ then
   ################
   # Check variant discovery failures
   numErrors=0
-  for index in ${!list[@]}
-  do if [[ ! `tail -1 ${list[${index}]}_bowtie2_NGSEP.log` == *Completed* ]]
+  for i in ${!list[@]}
+  do if [[ ! `tail -1 ${list[${i}]}_bowtie2_NGSEP.log` == *Completed* ]]
     then numErrors=`expr ${numErrors} + 1`
-    echo 'Error: Variant discovery for sample '${list[${index}]}' failed at some point !!'
+    echo 'Error: Variant discovery for sample '${list[${i}]}' failed at some point !!'
   fi; done
   if [[ ${numErrors} > 0 ]]; then echo 'Error: Variant discovery failed for '${numErrors}' samples'; exit 1; fi
   ################
