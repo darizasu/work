@@ -25,11 +25,7 @@ Then run Deconvolution, Trimming and Mapping, it could take several hours:
 
    When Variant Discovery is done, you'll be half way to get the final population VCF file. Check the individual BAM and VCF files for every one of your samples were produced successfully in the directory `${WD}/mapping`
 
-
-## runPopulation.sh
-Please follow these steps to run the second stage of the pipeline, called "runPopulation":
-
-5) Create a `samples2population` file, which contains information about the BAM and VCF files for every sample you want to include in your population's VCF file. It also contains some of the parameters to call variants using [NGSEP - FindVariants](https://sourceforge.net/projects/ngsep/files/Library/). Its full path must be specified in the parameter `samples2population` in the `runPopulation.sh` script. This file may contain comment lines starting with '#'. This 'samples2population' file contains 4 tab-separated columns:
+5) Create a `samples2population` file, which contains information about the BAM and VCF files for every sample you want to include in your population's VCF file. It also contains some of the parameters to call variants using [NGSEP - FindVariants](https://sourceforge.net/projects/ngsep/files/Library/). Its full path must be specified in the parameter `samples2population` either in the `compareRepeatedSamples.sh` (optional), and the `runPopulation.sh` scripts. This file may contain comment lines starting with '#'. This 'samples2population' file contains 4 tab-separated columns:
 
         /path/to/sampleID[tab]sample_name[tab]ignore5[tab]ignore3
 
@@ -49,3 +45,8 @@ Please follow these steps to run the second stage of the pipeline, called "runPo
 See the example below:
 
     /bioinfo2/projects/GBSplates/01/mapping/ALB_213	ALB_213-p01H10	4	10
+## compareRepeatedSamples.sh
+Please follow these steps to run the second stage of the pipeline, called "compareRepeatedSamples". This stage is optional, and it should be run just in case you have one or more samples that have been sequenced more than once and you want to verify that they are actually the same:
+## runPopulation.sh
+Please follow these steps to run the second stage of the pipeline, called "runPopulation":
+
