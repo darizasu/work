@@ -26,4 +26,4 @@ After running it, a file called "readPosStats_myPlateX.txt" is created in `${WD}
 
 `./runPlate.sh 'V' &`
 
-    OK, you're half way to get the final population VCF file. Check the individual BAM and VCF files for every one of your samples were produced successfully in the directory `${WD}/mapping`
+   OK, you're half way to get the final population VCF file. Check the individual BAM and VCF files for every one of your samples were produced successfully in the directory `${WD}/mapping`
