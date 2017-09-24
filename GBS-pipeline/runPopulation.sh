@@ -4,13 +4,13 @@
 
 # This is the working directory full path. It creates the directories 'genotyping' 
 # and 'population' in case they don't exist.
-WD=/bioinfo1/projects/bean/BSRseq/assembly/v2.1
+WD=/bioinfo1/projects/bean/all_genotypes
 
 # This is your population's name
-popName=BSR-Seq
+popName=all_bean_summary
 
 # The number of subprocesses you want to run. It depends on the number of available cores.
-numThreads=8
+numThreads=6
 
 # Specify the task(s) you want to perform. Include only the initial capital letter in a single string.
 # It can include 'V'ariantsMerge, 'G'enotyping, 'M'ergeVCF, 'A'nnotate, 'F'ilterVCF.
@@ -20,7 +20,7 @@ TASKS=$1
 # This file contains the sample ID to be removed from the VCF file.
 # Take a look at NGSEP FilterVCF -saf -fs flags
 # The full path to this file must be specified.
-samples2remove=/bioinfo1/projects/bean/BSRseq/assembly/v2.1/samples2remove.txt
+samples2remove=/bioinfo1/projects/bean/all_genotypes/samples2remove_all_bean_summary.txt
 
 # Specify the quality thresholds for FilterVCF
 quality=(20 40 60)
@@ -50,26 +50,26 @@ quality=(20 40 60)
  
 # See the example below:
 # /bioinfo2/projects/GBSplates/01/mapping/ALB_213	ALB_213-p01H10	4	10
-samples2population=/bioinfo1/projects/bean/BSRseq/assembly/v2.1/samples_in_BSR-Seq.txt
+samples2population=/bioinfo1/projects/bean/all_genotypes/samples_in_all_bean_summary.txt
 
 # In case you DO NOT want to run MergeVariants with the whole list of samples
 # specified in 'samples2population', please use the parameter 'myVariants' to specify
 # an empty VCF file with its full path. This file is produced after 
 # running NGSEP MergeVariants with other set of VCF files.
-myVariants=
+myVariants=/bioinfo1/projects/bean/WGS_tpg/Variants_WGS_tpg_NO_phred33.vcf.gz
 
 # The following variables define the file extension that the BAM and VCF files have in 
 # the location specified in the '/path/to/sample' of 'samples2population' (1st column). 
 # For example, if BAMext = bowtie2_sorted.bam and VCFext = bowtie2_NGSEP.vcf, then the 
 # '/path/to/sample' of 'samples2population' should take you to 
 # '/path/to/sample_bowtie2_sorted.bam' and '/path/to/sample_bowtie2_NGSEP.vcf'
-BAMext=hisat2_sorted.bam
-VCFext=hisat2_NGSEP.vcf
+BAMext=bowtie2_sorted.bam
+VCFext=bowtie2_NGSEP.vcf.gz
 
 # The following variable define the extension that the VCF file produced after 
 # Genotyping will have. In other words, if gtVCFext = bowtie2_NGSEP_gt then
 # you will find all genotyping files as ${WD}/genotyping/sample_bowtie2_NGSEP.vcf
-gtVCFext=hisat2_NGSEP_gt
+gtVCFext=bowtie2_NGSEP_gt
 
   # Path to Software used
 
@@ -87,7 +87,7 @@ REFGFF=/data/references/bean/v2.1/annotation/Pvulgaris_v2_genes.gff3
 
 # A file with a list of repetitive regions in the reference genome.
 # Check NGSEP-FilterVCF for more details.
-REPS=/data/references/bean/v2.1/repeats/Pvulgaris_v2_repMasked.list
+REPS=/bionas1/bean/datasetPapers/201707_WGS_64vars/reference/Pvulgaris442_repmasked.txt
 
 # A file with the list of sequence identifiers from the reference genome, one by line.
 refIDs=/data/references/bean/v2.1/assembly/Pvulgaris_442_v2.0_seqnames.txt
@@ -108,7 +108,7 @@ locations=(`grep -v '^#' ${samples2population} | cut -f 1 | tr '\n' ' '`)
 # as an element of a bash array called 'list'. Avoid '#' lines
 list=(`grep -v '^#' ${samples2population} | cut -f 2 | tr '\n' ' '`)
 
-echo -e 'This run contains the following samples:\n'${list[@]}'\n'
+echo -e 'This run contains '${#list[@]}' samples:\n'${list[@]}'\n'
 
 # The whole list of samples is divided in 'nThreads' sublists.
 # Every sublist is run in the background. It is an individual file 
@@ -168,7 +168,7 @@ then
   fi 
   ################
 
-  rm ${WD}/genotyping/*${VCFext}
+  rm ${WD}/genotyping/*${VCFext} ${popName}_mergevariants.log
 
   echo -e '\nMerge variants on '${popName}' files seems to be completed\n'$(date)'\n'
 
@@ -207,7 +207,7 @@ then
     Ifive=(`cut -f 3 ${tmpFile} | tr '\n' ' '`)
     Ithree=(`cut -f 4 ${tmpFile} | tr '\n' ' '`)
 
-    echo -e 'File '${tmpFile}' contains the following samples:\n'${myList[@]}
+    echo -e 'File '${tmpFile}' contains '${#myList[@]}' samples:\n'${myList[@]}
     myNum=`expr ${myNum} + ${#myList[@]}`; echo -e 'No. of samples assigned: '${myNum}'\n'
 
   ( for index in ${!myList[@]}
@@ -219,6 +219,8 @@ then
       -noRep -noRD -noRP -maxAlnsPerStartPos 100 -ignore5 ${Ifive[${index}]} -ignore3 ${Ithree[${index}]} \
       -sampleId ${myList[${index}]} -knownVariants ${myVariants} ${REF} ./${myList[${index}]}_${BAMext} \
       ${myList[${index}]}_${gtVCFext} >& ${myList[${index}]}_${gtVCFext}.log
+
+      ${bgzip} ${myList[${index}]}_${gtVCFext}.vcf
 
     done ) &
 
@@ -258,14 +260,15 @@ then
 
   echo -e '\nMerging VCF files in '${popName}'\n'$(date)'\n'
 
-  java -Xmx10g -jar ${NGSEP} MergeVCF ${refIDs} ./*_${gtVCFext}.vcf > ${WD}/population/${popName}.vcf
+  java -Xmx10g -jar ${NGSEP} MergeVCF ${refIDs} ./*_${gtVCFext}.vcf.gz | \
+  ${bgzip} > ${WD}/population/${popName}.vcf.gz
 
   ################
-  test ! -s ${WD}/population/${popName}.vcf \
+  test ! -s ${WD}/population/${popName}.vcf.gz \
   && echo "Error: Merge failed at some point !!" && exit 1
   ################
 
-  ${bgzip} ${WD}/population/${popName}.vcf
+  # ${bgzip} ${WD}/population/${popName}.vcf
   ${tabix} -p vcf ${WD}/population/${popName}.vcf.gz
 
   echo -e '\nVCF files in '${popName}' were merged\n'$(date)'\n'
@@ -293,14 +296,14 @@ then
   && ${tabix} -p vcf ${WD}/population/${popName}.vcf.gz
 
   java -Xmx6g -jar ${NGSEP} Annotate ./${popName}.vcf.gz \
-  ${REFGFF} ${REF} > ${popName}_annotated.vcf
+  ${REFGFF} ${REF} | ${bgzip} > ${popName}_annotated.vcf.gz
 
   ################
-  test ! -s ${popName}_annotated.vcf \
+  test ! -s ${popName}_annotated.vcf.gz \
   && echo "Error: Annotate failed at some point !!" && exit 1
   ################
 
-  ${bgzip} ${popName}_annotated.vcf
+  # ${bgzip} ${popName}_annotated.vcf
   ${tabix} -p vcf ${popName}_annotated.vcf.gz
 
   echo -e '\nVCF file in '${popName}' was annotated\n'$(date)'\n'
@@ -319,7 +322,7 @@ then
 
 else
 
-  echo -e '\nAnnotate will not be executed this time\n'$(date)'\n'
+  echo -e '\nAnnotation will not be executed this time\n'$(date)'\n'
 
 fi
 
@@ -333,39 +336,39 @@ then
 
   cd ${WD}/population
 
-  echo -e '\nRunning filters on  '${popName}'  files\n'$(date)'\n'
+  echo -e '\nRunning filters on '${popName}' files\n'$(date)'\n'
 
   for q in ${quality[@]}
   do
 
   ( java -Xmx6g -jar ${NGSEP} FilterVCF -saf ${samples2remove} \
-    -fs -q ${q} ${popName}_annotated.vcf.gz 1> ${popName}_annotated_q${q}.vcf
+    -fs -q ${q} ${popName}_annotated.vcf.gz | ${bgzip} 1> ${popName}_annotated_q${q}.vcf.gz
 
     java -Xmx3g -jar ${NGSEP} SummaryStats -m 0 \
-    ${popName}_annotated_q${q}.vcf > ${popName}_annotated_q${q}_summary.stats
+    ${popName}_annotated_q${q}.vcf.gz > ${popName}_annotated_q${q}_summary.stats
 
     ################
     test ! -s ${popName}_annotated_q${q}_summary.stats \
-    && echo 'Error: FilterVCF for '${popName}'_annotated_q'${q}'.vcf failed at some point !!' \
+    && echo 'Error: FilterVCF for '${popName}'_annotated_q'${q}'.vcf.gz failed at some point !!' \
     && exit 1
     ################
 
-    ${bgzip} ${popName}_annotated_q${q}.vcf
+    # ${bgzip} ${popName}_annotated_q${q}.vcf
     ${tabix} -p vcf ${popName}_annotated_q${q}.vcf.gz
 
     java -Xmx6g -jar ${NGSEP} FilterVCF -s -frs ${REPS} -fi -minMAF 0.05 -maxOH 0.06 \
-    ${popName}_annotated_q${q}.vcf.gz 1> ${popName}_annotated_repMasked_q${q}_s_fi_maf05_oh06.vcf
+    ${popName}_annotated_q${q}.vcf.gz | ${bgzip} 1> ${popName}_annotated_repMasked_q${q}_s_fi_maf05_oh06.vcf.gz
 
-    java -Xmx3g -jar ${NGSEP} SummaryStats -m 1 ${popName}_annotated_repMasked_q${q}_s_fi_maf05_oh06.vcf \
+    java -Xmx3g -jar ${NGSEP} SummaryStats -m 1 ${popName}_annotated_repMasked_q${q}_s_fi_maf05_oh06.vcf.gz \
     > ${popName}_annotated_repMasked_q${q}_s_fi_maf05_oh06_summary.stats
 
     ################
     test ! -s ${popName}_annotated_repMasked_q${q}_s_fi_maf05_oh06_summary.stats \
-    && echo 'Error: FilterVCF for '${popName}'_annotated_q'${q}'_s_fi_maf05_oh06.vcf failed at some point !!' \
+    && echo 'Error: FilterVCF for '${popName}'_annotated_q'${q}'_s_fi_maf05_oh06.vcf.gz failed at some point !!' \
     && exit 1
     ################
 
-    ${bgzip} ${popName}_annotated_repMasked_q${q}_s_fi_maf05_oh06.vcf
+    # ${bgzip} ${popName}_annotated_repMasked_q${q}_s_fi_maf05_oh06.vcf
     ${tabix} -p vcf ${popName}_annotated_repMasked_q${q}_s_fi_maf05_oh06.vcf.gz
 
   ) &
@@ -380,4 +383,3 @@ else
   echo -e '\nFilterVCF will not be executed this time\n'$(date)'\n'
 
 fi
-
