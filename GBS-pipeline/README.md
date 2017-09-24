@@ -31,7 +31,7 @@ Please follow these steps to run the second stage of the pipeline, called "runPo
 
 5) Create a `samples2population` file, which contains information about the BAM and VCF files for every sample you want to include in your population's VCF file. It also contains some of the parameters to call variants using [NGSEP - FindVariants](https://sourceforge.net/projects/ngsep/files/Library/). Its full path must be specified in the parameter `samples2population` in the `runPopulation.sh` script. This file may contain comment lines starting with '#'. This 'samples2population' file contains 4 tab-separated columns:
 
-  `/path/to/sampleID[tab]sample_name[tab]ignore5[tab]ignore3`
+        /path/to/sampleID[tab]sample_name[tab]ignore5[tab]ignore3
 
   * `/path/to/sample` gives the full location + sample-prefix to a sample's VCF and BAM files.
   In other words, you must be able to find these files in the specified directory (check parameters `BAMext` and `VCFext` in the `runPopulation.sh` script for more info):
