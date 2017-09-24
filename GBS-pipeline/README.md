@@ -25,7 +25,7 @@ Then run Deconvolution, Trimming and Mapping, it could take several hours:
 
    When Variant Discovery is done, you'll be half way to get the final population VCF file. Check the individual BAM and VCF files for every one of your samples were produced successfully in the directory `${WD}/mapping`
 
-5) Create a `samples2population` file, which contains information about the BAM and VCF files for every sample you want to include in your population's VCF file. It also contains some of the parameters to call variants using [NGSEP - FindVariants](https://sourceforge.net/projects/ngsep/files/Library/). Its full path must be specified in the parameter `samples2population` either in the `compareRepeatedSamples.sh` (optional), and the `runPopulation.sh` scripts. This file may contain comment lines starting with '#'. This 'samples2population' file contains 4 tab-separated columns:
+5) Create a [`samples2population`](https://github.com/darizasu/work/blob/master/GBS-pipeline/samples2population.txt) file, which contains information about the BAM and VCF files for every sample you want to include in your population's VCF file. It also contains some of the parameters to call variants using [NGSEP - FindVariants](https://sourceforge.net/projects/ngsep/files/Library/). Its full path must be specified in the parameter `samples2population` either in the [`compareRepeatedSamples.sh`](https://github.com/darizasu/work/blob/master/GBS-pipeline/compareRepeatedSamples.sh) (optional), and the [`runPopulation.sh`](https://github.com/darizasu/work/blob/master/GBS-pipeline/runPopulation.sh) scripts, which will be executed in the next stages of the pipeline. This file may contain comment lines starting with '#'. This 'samples2population' file contains 4 tab-separated columns:
 
         /path/to/sampleID[tab]sample_name[tab]ignore5[tab]ignore3
 
@@ -45,8 +45,9 @@ Then run Deconvolution, Trimming and Mapping, it could take several hours:
 See the example below:
 
     /bioinfo2/projects/GBSplates/01/mapping/ALB_213	ALB_213-p01H10	4	10
+    
 ## compareRepeatedSamples.sh
-Please follow these steps to run the second stage of the pipeline, called "compareRepeatedSamples". This stage is optional, and it should be run just in case you have one or more samples that have been sequenced more than once and you want to verify that they are actually the same:
+Please follow these steps to run the optional stage of the pipeline, called "compareRepeatedSamples". This stage should be run just in case you have one or more samples that have been sequenced more than once and you want to verify that they are actually the same:
 ## runPopulation.sh
 Please follow these steps to run the second stage of the pipeline, called "runPopulation":
 
