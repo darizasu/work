@@ -29,22 +29,22 @@ Then run Deconvolution, Trimming and Mapping, it could take several hours:
 ## runPopulation.sh
 Please follow these steps to run the second stage of the pipeline, called "runPopulation":
 
-5) Create a `samples_to_population` file, which contains information about the BAM and VCF files for every sample you want to include in your population's VCF file. It also contains some of the parameters to call variants using [NGSEP - FindVariants](https://sourceforge.net/projects/ngsep/files/Library/). Its full path must be specified in the parameter `samples_to_population` in the `runPopulation.sh` script. This file may contain comment lines starting with '#'. This 'samples2population' file contains 4 tab-separated columns:
+5) Create a `samples2population` file, which contains information about the BAM and VCF files for every sample you want to include in your population's VCF file. It also contains some of the parameters to call variants using [NGSEP - FindVariants](https://sourceforge.net/projects/ngsep/files/Library/). Its full path must be specified in the parameter `samples2population` in the `runPopulation.sh` script. This file may contain comment lines starting with '#'. This 'samples2population' file contains 4 tab-separated columns:
 
   `/path/to/sampleID[tab]sample_name[tab]ignore5[tab]ignore3`
 
   * `/path/to/sample` gives the full location + sample-prefix to a sample's VCF and BAM files.
-  In other words, you must be able to find these files in the specified directory (check parameters 'BAMext' and 'VCFext' in the `runPopulation.sh` script for more info):
+  In other words, you must be able to find these files in the specified directory (check parameters `BAMext` and `VCFext` in the `runPopulation.sh` script for more info):
   /path/to/sample_${VCFext}
   /path/to/sample_${BAMext}
-  These files are produced after running `runPlate.sh` correctly.
+  These files are produced after running the first stage of this pipeline with `runPlate.sh` correctly.
 
-* `sample_name` is the name that every sample will take in the final VCF file.
+  * `sample_name` is the name that every sample will take in the final VCF file.
   Beware to avoid repeated names in this second column. In case of repeated samples, you must name every sample as (e.g.): 
   sample_name-p01F12, the '-p' is mandatory (MANDATORY) after 'samplename' ('p' stands for 
   'plate'), and p01F12 may indicate the plate number and well that contained that sample.
 
-* ignore5 and ignore3 are to ignore this many base pairs from the 5' and 3' ends in [NGSEP - FindVariants](https://sourceforge.net/projects/ngsep/files/Library/).
+  * ignore5 and ignore3 are to ignore this many base pairs from the 5' and 3' ends in [NGSEP - FindVariants](https://sourceforge.net/projects/ngsep/files/Library/).
  
 See the example below:
     /bioinfo2/projects/GBSplates/01/mapping/ALB_213	ALB_213-p01H10	4	10
