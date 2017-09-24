@@ -2,7 +2,8 @@
 
 This set of wrapper scripts are intended to run the whole GBS pipeline, from raw reads to the final VCF file.
 They use [NGSEP](https://sourceforge.net/projects/ngsep/files/Library/) (tested with v.3.0.2), [Bowtie2](http://bowtie-bio.sourceforge.net/bowtie2/index.shtml) (tested with v2.2.9), [Picard](http://broadinstitute.github.io/picard/index.html) (tested with v.1.140), [Trimmomatic](http://www.usadellab.org/cms/index.php?page=trimmomatic) (tested with v.0.36) and [htslib](http://www.htslib.org/download/) for [bgzip](http://www.htslib.org/doc/tabix.html) and [tabix](http://www.htslib.org/doc/tabix.html). Make sure you have them installed and then provide the location for their executables in these scripts accordingly.
-Please follow these steps:
+## runPlate.sh
+Please follow these steps to run the first stage of the pipeline, called "runPlate":
 
 0) Select your working directory, where all the temporary and final results will be created. From now on (on this small vignette), I will refer to your selected location as `${WD}`. Notice you will have to provide this location in the parameter "WD" in `runPlate.sh` and `runPopulation.sh` scripts.
 1) Create the following directory and put your raw reads there: 
@@ -23,3 +24,27 @@ Then run Deconvolution, Trimming and Mapping, it could take several hours:
 `./runPlate.sh 'V' &`
 
    When Variant Discovery is done, you'll be half way to get the final population VCF file. Check the individual BAM and VCF files for every one of your samples were produced successfully in the directory `${WD}/mapping`
+
+
+## runPopulation.sh
+Please follow these steps to run the second stage of the pipeline, called "runPopulation":
+
+5) Create a `samples_to_population` file, which contains information about the BAM and VCF files for every sample you want to include in your population's VCF file. It also contains some of the parameters to call variants using [NGSEP - FindVariants](https://sourceforge.net/projects/ngsep/files/Library/). Its full path must be specified in the parameter `samples_to_population` in the `runPopulation.sh` script. This file may contain comment lines starting with '#'. This 'samples2population' file contains 4 tab-separated columns:
+
+  `/path/to/sampleID[tab]sample_name[tab]ignore5[tab]ignore3`
+
+  * `/path/to/sample` gives the full location + sample-prefix to a sample's VCF and BAM files.
+  In other words, you must be able to find these files in the specified directory (check parameters 'BAMext' and 'VCFext' in the `runPopulation.sh` script for more info):
+  /path/to/sample_${VCFext}
+  /path/to/sample_${BAMext}
+  These files are produced after running `runPlate.sh` correctly.
+
+* `sample_name` is the name that every sample will take in the final VCF file.
+  Beware to avoid repeated names in this second column. In case of repeated samples, you must name every sample as (e.g.): 
+  sample_name-p01F12, the '-p' is mandatory (MANDATORY) after 'samplename' ('p' stands for 
+  'plate'), and p01F12 may indicate the plate number and well that contained that sample.
+
+* ignore5 and ignore3 are to ignore this many base pairs from the 5' and 3' ends in [NGSEP - FindVariants](https://sourceforge.net/projects/ngsep/files/Library/).
+ 
+See the example below:
+    /bioinfo2/projects/GBSplates/01/mapping/ALB_213	ALB_213-p01H10	4	10
