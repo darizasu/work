@@ -41,7 +41,7 @@ Please follow these steps to run the second stage of the pipeline, called "runPo
 
   * `sample_name` is the name that every sample will take in the final VCF file.
   Beware to avoid repeated names in this second column. In case of repeated samples, you must name every sample as (e.g.): 
-  sample_name-p01F12, the '-p' is mandatory (MANDATORY) after 'samplename' ('p' stands for 
+  `sample_name-p01F12`, the '-p' in lowercase is mandatory (MANDATORY) after 'samplename' ('p' stands for 
   'plate'), and p01F12 may indicate the plate number and well that contained that sample.
 
   * ignore5 and ignore3 are to ignore this many base pairs from the 5' and 3' ends in [NGSEP - FindVariants](https://sourceforge.net/projects/ngsep/files/Library/).
