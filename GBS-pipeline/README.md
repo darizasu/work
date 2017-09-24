@@ -16,13 +16,9 @@ Then run Deconvolution, Trimming and Mapping, it could take several hours:
 
 `./runPlate.sh 'DTM' &`
 
-4) Run the script `calculateReadPos.sh` providing the `${WD}` and "plateID" information, it shouldn't take more than 10 seconds:
+   Once the mapping step is done, a file called `readPosStats_XX.txt` is created in `${WD}`. It contains the total sequencing error bias along the read position for unique-mapping reads (first column) and multi-mapping reads (second column), calculated for all the samples in the plate. Plot these results along the read position. You have to decide the i5 and i3 parameters by looking at how many consecutive positions in the 5' end and the 3' end have a high sequencing error bias (guide yourself by the behavior of the slope). i5 is to ignore this many base pairs from the 5' end of the reads. i3 is to ignore this many base pairs from the 3' end of the reads, check [NGSEP - FindVariants](https://sourceforge.net/projects/ngsep/files/Library/) manual page. Once you have decided the value for these parameters, specify them in the script `runPlate.sh` accordingly.
 
-`calculateReadPos.sh ${WD} myPlateX`
-
-After running it, a file called "readPosStats_myPlateX.txt" is created in `${WD}`. It contains the total sequencing error bias along the read position for unique-mapping reads (first column) and multi-mapping reads (second column), calculated for all the samples in the plate. Plot these results along the read position. You have to decide the i5 and i3 parameters by looking at how many consecutive positions in the 5' end and the 3' end have a high sequencing error bias (guide yourself by the behavior of the slope). i5 is to ignore this many base pairs from the 5' end of the reads. i3 is to ignore this many base pairs from the 3' end of the reads, check [NGSEP - FindVariants](https://sourceforge.net/projects/ngsep/files/Library/) manual page. Once you have decided the value for these parameters, specify them in the script `runPlate.sh` accordingly.
-
-5) Run Variant discovery, it could take 1 -2h:
+4) Run Variant discovery, it could take 1 -2h:
 
 `./runPlate.sh 'V' &`
 
