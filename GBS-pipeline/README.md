@@ -9,7 +9,7 @@ Please follow these steps:
     `${WD}/reads/lane/`
 2) Create an [`INDEXFILE`](https://github.com/darizasu/work/blob/master/GBS-pipeline/INDEXFILE.txt) containing information about sequencing lane, flowcell, barcode and sample-name.
 Create a [`FILES2DECONV`](https://github.com/darizasu/work/blob/master/GBS-pipeline/FILES2DECONV.txt) file which contains information about the sequencing lane, flowcell and raw fastq filename(s).
-If you have adapter sequences to be removed from your reads, put them in a fasta file in `${WD}/reads/`.
+If you have [adapter sequences](https://github.com/darizasu/work/blob/master/GBS-pipeline/adaptersGBS.fa) to be removed from your reads, put them in a fasta file in `${WD}/reads/`.
 Give the location and name of these files in the `runPlate.sh` script properly. Take a look at the provided template files in this repository or check [NGSEP - Deconvolute](https://sourceforge.net/projects/ngsep/files/Library/) for more details.
 3) Modify the running parameters of `runPlate.sh`, which are all the lines in the script before the "DO NOT MODIFY ANYTHING FROM THIS POINT FORWARD" warning.
 Then run Deconvolution, Trimming and Mapping, it could take several hours:
