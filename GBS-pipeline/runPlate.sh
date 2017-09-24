@@ -262,8 +262,9 @@ then
 
     # Calculate statistics from the alignments file
 
-      echo $(date) 'Calculating coverage statistics for '${p}
+      echo $(date) 'Calculating statistics for '${p}
 
+      java -Xmx3g -jar ${NGSEP} QualStats ${REF} ${p}_bowtie2_sorted.bam >& ${p}_bowtie2_readpos.stats
       java -Xmx3g -jar ${NGSEP} CoverageStats ${p}_bowtie2_sorted.bam ${p}_bowtie2_coverage.stats >& ${p}_bowtie2_coverage.log
 
       echo $(date) ${p}' is DONE'
@@ -272,10 +273,6 @@ then
 
   done
   wait
-
-  echo -e '\n'$(date) 'Calculating statistics for '${runName}
-  java -Xmx3g -jar ${NGSEP} QualStats ${REF} ${WD}/mapping/*_bowtie2_sorted.bam \
-  >& ${WD}/${runName}_bowtie2_readpos.stats
 
   rm *tmp
 
@@ -289,6 +286,40 @@ then
   fi; done
   if [[ ${numErrors} > 0 ]]; then echo 'Error: Mapping failed for '${numErrors}' samples'; exit 1; fi
   ################
+
+  echo -e '\n'$(date) 'Calculating Quality statistics for '${runName}
+
+  cd ${WD}/mapping
+
+  for col in {2..5}
+  do
+
+    touch tmpFile_${col}.tmp
+
+    for sample in *_bowtie2_readpos.stats
+    do
+
+      head -n -3 ${sample} | cut -f${col} | paste tmpFile_${col}.tmp - > all_pl${runName}_col${col}.txt
+      cp all_pl${runName}_col${col}.txt tmpFile_${col}.tmp
+
+    done
+
+    sed -i "s/^[ \t]*//" all_pl${runName}_col${col}.txt
+    rm tmpFile_${col}.tmp
+
+    awk '{for(i=1;i<=NF;i++) t+=$i; print t; t=0}' all_pl${runName}_col${col}.txt > sum_pl${runName}_col${col}.txt
+    rm all_pl${runName}_col${col}.txt
+
+    mv sum_pl${runName}_col${col}.txt ${WD}
+
+  done
+
+  cd ${WD}
+  paste sum_pl${runName}_col2.txt sum_pl${runName}_col3.txt sum_pl${runName}_col4.txt sum_pl${runName}_col5.txt > readPosStats_pl${runName}.tmp
+  rm sum_pl*
+
+  awk '{print $1/$3"\t"$2/$4}' readPosStats_pl${runName}.tmp > readPosStats_${runName}.txt
+  rm readPosStats_pl${runName}.tmp
 
   echo -e '\nMapping on '${runName}' files seems to be completed\n'$(date)'\n'
 
