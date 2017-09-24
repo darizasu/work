@@ -65,7 +65,8 @@ cd ${WD}/reads/lane
 # the 'FILES2DECONV' file based on the number of columns it contains.
 SEorPE=`head -1 ${FILES2DECONV} | tr '\t' '\n' | wc -l`
 
-test ${SEorPE} == 4 && echo -e 'This run is working with Paired-end sequencing\n' || echo -e 'This run is working with Single-end sequencing\n'
+test ${SEorPE} == 4 && echo -e 'This run is working with Paired-end sequencing\n' \
+  || echo -e 'This run is working with Single-end sequencing\n'
 
 # Get the list of samples from the 4th column in 'INDEXFILE' file, avoid first line. 
 list=(`cut -f 4 ${INDEXFILE} | tail -n +2 | sort -u | tr '\n' ' '`)
@@ -90,7 +91,9 @@ function doWeHaveReads {
   do if ! ls ${WD}/reads/${list[${i}]}*.fastq.gz > /dev/null 2>&1
     then numErrors=`expr ${numErrors} + 1`; echo 'Error: The sample '${list[${i}]}' does not have reads'
   fi; done
-  if [[ ${numErrors} > 0 ]]; then echo 'Error: There are '${numErrors}' samples with no reads at '${WD}'/reads/'; exit 1; fi
+  if [[ ${numErrors} > 0 ]];
+    then echo 'Error: There are '${numErrors}' samples with no reads at '${WD}'/reads/'; exit 1
+  fi
 }
 
 
@@ -315,7 +318,8 @@ then
   done
 
   cd ${WD}
-  paste sum_pl${runName}_col2.txt sum_pl${runName}_col3.txt sum_pl${runName}_col4.txt sum_pl${runName}_col5.txt > readPosStats_pl${runName}.tmp
+  paste sum_pl${runName}_col2.txt sum_pl${runName}_col3.txt sum_pl${runName}_col4.txt \
+    sum_pl${runName}_col5.txt > readPosStats_pl${runName}.tmp
   rm sum_pl*
 
   awk '{print $1/$3"\t"$2/$4}' readPosStats_pl${runName}.tmp > readPosStats_${runName}.txt
