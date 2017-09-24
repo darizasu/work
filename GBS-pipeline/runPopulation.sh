@@ -54,7 +54,7 @@ samples2population=/bioinfo1/projects/bean/all_genotypes/samples_in_all_bean_sum
 
 # In case you DO NOT want to run MergeVariants with the whole list of samples
 # specified in 'samples2population', please use the parameter 'myVariants' to specify
-# an empty VCF file with its full path. This file is produced after 
+# a list of variants in VCF format with its full path. This file is produced after 
 # running NGSEP MergeVariants with other set of VCF files.
 myVariants=/bioinfo1/projects/bean/WGS_tpg/Variants_WGS_tpg_NO_phred33.vcf.gz
 
