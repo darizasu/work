@@ -47,4 +47,5 @@ Please follow these steps to run the second stage of the pipeline, called "runPo
   * ignore5 and ignore3 are to ignore this many base pairs from the 5' and 3' ends in [NGSEP - FindVariants](https://sourceforge.net/projects/ngsep/files/Library/).
  
 See the example below:
+
     /bioinfo2/projects/GBSplates/01/mapping/ALB_213	ALB_213-p01H10	4	10
