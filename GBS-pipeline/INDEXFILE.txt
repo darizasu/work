@@ -1,4 +1,4 @@
-flowcell	lane	barcode	line
+flowcell	lane	barcode	sample
 H7GFVBCXY	1	TTACGAT	blank16
 H7GFVBCXY	1	CTTGCTT	CMB_018
 H7GFVBCXY	1	GGACCTA	CMB_080
