@@ -86,10 +86,10 @@ In addition, notice that new lines have been added at the bottom part of the fil
 
 Now, based on the analysis you've done for every `sample_name_CompareVCF_q60.txt` file, you decide if you want to include the merged BAM and VCF file in the final population VCF. All you need to do is to comment (with '#') the samples you want to avoid using for the final population VCF. Going back to the example above, we found that all individual entries for BAT_093 were the same. Then, we will comment the lines that mark individual entries an leave uncommented the line with the merged files produced after running [`compareRepeatedSamples.sh`](https://github.com/darizasu/work/blob/master/GBS-pipeline/compareRepeatedSamples.sh):
 
-		#/bionas1/bean/GBSplates/21/mapping/v2.1/BAT_093	BAT_093-p21	6	12
-		#/bionas1/bean/GBSplates/23/mapping/v2.1/BAT_093-D02	BAT_093-p23D02	6	12
-		#/bionas1/bean/GBSplates/23/mapping/v2.1/BAT_093-E10	BAT_093-p23E10	6	12
-		/bioas1/bean/myPopulation/genotyping/BAT_093/BAT_093	BAT_093	6	12
+	#/bionas1/bean/GBSplates/21/mapping/v2.1/BAT_093	BAT_093-p21	6	12
+	#/bionas1/bean/GBSplates/23/mapping/v2.1/BAT_093-D02	BAT_093-p23D02	6	12
+	#/bionas1/bean/GBSplates/23/mapping/v2.1/BAT_093-E10	BAT_093-p23E10	6	12
+	/bioas1/bean/myPopulation/genotyping/BAT_093/BAT_093	BAT_093	6	12
 
 
 
