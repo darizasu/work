@@ -52,9 +52,9 @@ The samples to be compared in this stage will be genotyped with the provided lis
 
 1) After creating a [`samples2population`](https://github.com/darizasu/work/blob/master/GBS-pipeline/samples2population.txt) file, make sure that the repeated samples you want to compare have the same `sample_name` prefix followed by `-p` in lowercase (MANDATORY) and their corresponding unique identifiers, all of this in the second tab-separated value. Please refer to the 5th step in the previous stage 'runPlate'. You can check the provided template [`samples2population`](https://github.com/darizasu/work/blob/master/GBS-pipeline/samples2population.txt) file. In the following example, the sample BAT_093 was sequenced three different times, and it will be compared to see if all the three samples are exactly the same genotype. Notice the second tab-separated value has the same prefix followed by unique `-pXXX` identifiers:
 
-		/bionas1/bean/GBSplates/21/mapping/v2.1/BAT_093	BAT_093-p21	6	12
-		/bionas1/bean/GBSplates/23/mapping/v2.1/BAT_093-D02	BAT_093-p23D02	6	12
-		/bionas1/bean/GBSplates/23/mapping/v2.1/BAT_093-E10	BAT_093-p23E10	6	12
+		#/bionas1/bean/GBSplates/21/mapping/v2.1/BAT_093	BAT_093-p21	6	12
+		#/bionas1/bean/GBSplates/23/mapping/v2.1/BAT_093-D02	BAT_093-p23D02	6	12
+		#/bionas1/bean/GBSplates/23/mapping/v2.1/BAT_093-E10	BAT_093-p23E10	6	12
 
 The complete file path for [`samples2population`](https://github.com/darizasu/work/blob/master/GBS-pipeline/samples2population.txt) should be specified in the `samples2population` parameter in the [`compareRepeatedSamples.sh`](https://github.com/darizasu/work/blob/master/GBS-pipeline/compareRepeatedSamples.sh) script.
 
@@ -82,7 +82,14 @@ A VCF file with variants discovered from the merged BAM file and its correspondi
 * `BAT_093_bowtie2_NGSEP.log`
 * `BAT_093_bowtie2_NGSEP.vcf.gz`
 
+In addition, notice that new lines have been added at the bottom part of the file [`samples2population`](https://github.com/darizasu/work/blob/master/GBS-pipeline/samples2population.txt). These new lines contain some information about the newly merged samples, their location, their name and their corresponding [NGSEP - FindVariants](https://sourceforge.net/projects/ngsep/files/Library/) parameters.
 
+Now, based on the analysis you've done for every `sample_name_CompareVCF_q60.txt` file, you decide if you want to include the merged BAM and VCF file in the final population VCF. All you need to do is to comment (with '#') the samples you want to avoid using for the final population VCF. Going back to the example above, we found that all individual entries for BAT_093 were the same. Then, we will comment the lines that mark individual entries an leave uncommented the line with the merged files produced after running [`compareRepeatedSamples.sh`](https://github.com/darizasu/work/blob/master/GBS-pipeline/compareRepeatedSamples.sh):
+
+		#/bionas1/bean/GBSplates/21/mapping/v2.1/BAT_093	BAT_093-p21	6	12
+		#/bionas1/bean/GBSplates/23/mapping/v2.1/BAT_093-D02	BAT_093-p23D02	6	12
+		#/bionas1/bean/GBSplates/23/mapping/v2.1/BAT_093-E10	BAT_093-p23E10	6	12
+		/bioas1/bean/myPopulation/genotyping/BAT_093/BAT_093	BAT_093	6	12
 
 
 
