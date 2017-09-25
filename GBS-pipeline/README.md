@@ -52,9 +52,9 @@ The samples to be compared in this stage will be genotyped with the provided lis
 
 1) After creating a [`samples2population`](https://github.com/darizasu/work/blob/master/GBS-pipeline/samples2population.txt) file, make sure that the repeated samples you want to compare have the same `sample_name` prefix followed by `-p` in lowercase (MANDATORY) and their corresponding unique identifiers, all of this in the second tab-separated value. Please refer to the 5th step in the previous stage 'runPlate'. You can check the provided template [`samples2population`](https://github.com/darizasu/work/blob/master/GBS-pipeline/samples2population.txt) file. In the following example, the sample BAT_093 was sequenced three different times, and it will be compared to see if all the three samples are exactly the same genotype. Notice the second tab-separated value has the same prefix followed by unique `-pXXX` identifiers:
 
-    /bionas1/bean/GBSplates/21/mapping/v2.1/BAT_093	BAT_093-p21	6	12
-    /bionas1/bean/GBSplates/23/mapping/v2.1/BAT_093-D02	BAT_093-p23D02	6	12
-    /bionas1/bean/GBSplates/23/mapping/v2.1/BAT_093-E10	BAT_093-p23E10	6	12
+		/bionas1/bean/GBSplates/21/mapping/v2.1/BAT_093	BAT_093-p21	6	12
+		/bionas1/bean/GBSplates/23/mapping/v2.1/BAT_093-D02	BAT_093-p23D02	6	12
+		/bionas1/bean/GBSplates/23/mapping/v2.1/BAT_093-E10	BAT_093-p23E10	6	12
 
 The complete file path for [`samples2population`](https://github.com/darizasu/work/blob/master/GBS-pipeline/samples2population.txt) should be specified in the `samples2population` parameter in the [`compareRepeatedSamples.sh`](https://github.com/darizasu/work/blob/master/GBS-pipeline/compareRepeatedSamples.sh) script.
 
