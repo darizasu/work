@@ -75,7 +75,7 @@ Symlinks to the original BAM file for every repeated sample identified in [`samp
 A text file with the output of [NGSEP - CompareVCF](https://sourceforge.net/projects/ngsep/files/Library/). Check carefully the details of the comparison, as they will tell you if the tested samples are the same or not.
 * `BAT_093_CompareVCF_q60.txt`
 
-A merged BAM file that contains alignments for all the BAM files with the prefix `BAT_093` identified in [`samples2population`](https://github.com/darizasu/work/blob/master/GBS-pipeline/samples2population.txt).
+A merged BAM file that contains alignments for every BAM file with the prefix `BAT_093` identified in [`samples2population`](https://github.com/darizasu/work/blob/master/GBS-pipeline/samples2population.txt).
 * `BAT_093_bowtie2_sorted.bam`
 
 A VCF file with variants discovered from the merged BAM file and its corresponding log file.
