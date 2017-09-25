@@ -61,21 +61,29 @@ The complete file path for [`samples2population`](https://github.com/darizasu/wo
 2) Specify the list of variants for your species in VCF format in the parameter `myVariants` in the script [`compareRepeatedSamples.sh`](https://github.com/darizasu/work/blob/master/GBS-pipeline/compareRepeatedSamples.sh).
 
 3) Modify the running parameters of [`compareRepeatedSamples.sh`](https://github.com/darizasu/work/blob/master/GBS-pipeline/compareRepeatedSamples.sh) properly, which are all the lines in the script before the "DO NOT MODIFY ANYTHING FROM THIS POINT FORWARD" warning.
-Then run the script from the ${WD} directory. It could take several hours depending on the number of repeated samples you want to compare and the density of variants provided in the `myVariants` parameter:
+Then run the script from the `${WD}` directory. It could take several hours depending on the number of repeated samples you want to compare and the density of variants provided in the `myVariants` parameter:
 
 `./compareRepeatedSamples.sh &`
 
-Once the [`compareRepeatedSamples.sh`](https://github.com/darizasu/work/blob/master/GBS-pipeline/compareRepeatedSamples.sh) finishes, `${WD}/genotyping` contains a single directory for every repeated sample identified in [`samples2population`](https://github.com/darizasu/work/blob/master/GBS-pipeline/samples2population.txt). Taking back the example above, the directory `${WD}/genotyping/BAT_093` contains the following files:
+Once [`compareRepeatedSamples.sh`](https://github.com/darizasu/work/blob/master/GBS-pipeline/compareRepeatedSamples.sh) finishes, `${WD}/genotyping` contains a single directory for every repeated sample identified in [`samples2population`](https://github.com/darizasu/work/blob/master/GBS-pipeline/samples2population.txt). Taking back the example above, the directory `${WD}/genotyping/BAT_093` contains the following files:
 
+Symlinks to the original BAM file for every repeated sample identified in [`samples2population`](https://github.com/darizasu/work/blob/master/GBS-pipeline/samples2population.txt).
+* `BAT_093-p21_bowtie2_sorted.bam`
+* `BAT_093-p23D02_bowtie2_sorted.bam`
+* `BAT_093-p23E10_bowtie2_sorted.bam`
 
-* `BAT_093_bowtie2_NGSEP.log`
-* `BAT_093_bowtie2_NGSEP.vcf.gz`  This is a VCF file with variants discovered from the merged BAM file. This should 
-* `BAT_093_bowtie2_sorted.bam`  This is a merged BAM file that contains alignments for all the BAM files with the prefix `BAT_093` identified in [`samples2population`](https://github.com/darizasu/work/blob/master/GBS-pipeline/samples2population.txt).
+A text file with the output of [NGSEP - CompareVCF](https://sourceforge.net/projects/ngsep/files/Library/). Check carefully the details of the comparison, as they will tell you if the tested samples are the same or not.
 * `BAT_093_CompareVCF_q60.txt`
 
-* `BAT_093-p21_bowtie2_sorted.bam`
-* `BAT_093-p23D02_bowtie2_sorted.bam`  These are symlinks to the original BAM files identified in [`samples2population`](https://github.com/darizasu/work/blob/master/GBS-pipeline/samples2population.txt).
-* `BAT_093-p23E10_bowtie2_sorted.bam`
+A merged BAM file that contains alignments for all the BAM files with the prefix `BAT_093` identified in [`samples2population`](https://github.com/darizasu/work/blob/master/GBS-pipeline/samples2population.txt).
+* `BAT_093_bowtie2_sorted.bam`
+
+A VCF file with variants discovered from the merged BAM file and its corresponding log file.
+* `BAT_093_bowtie2_NGSEP.log`
+* `BAT_093_bowtie2_NGSEP.vcf.gz`
+
+
+
 
 
 ## runPopulation.sh
