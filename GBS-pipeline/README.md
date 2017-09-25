@@ -47,7 +47,37 @@ See the example below:
     /bioinfo2/projects/GBSplates/01/mapping/ALB_213	ALB_213-p01H10	4	10
     
 ## compareRepeatedSamples.sh
-Please follow these steps to run the optional stage of the pipeline, called "compareRepeatedSamples". This stage should be run just in case you have one or more samples that have been sequenced more than once and you want to verify that they are actually the same:
+Please follow these steps to run the optional stage of the pipeline, called "compareRepeatedSamples". This stage should be run just in case you have one or more samples that have been sequenced more than once and you want to verify that they are actually the same. First of all, you need a dense list of variants for your species in VCF format. This list can be obtained by running [NGSEP - MergeVariants](https://sourceforge.net/projects/ngsep/files/Library/), check it out for more details.
+The samples to be compared in this stage will be genotyped with the provided list of variants.
+
+1) After creating a [`samples2population`](https://github.com/darizasu/work/blob/master/GBS-pipeline/samples2population.txt) file, make sure that the repeated samples you want to compare have the same `sample_name` prefix followed by `-p` in lowercase (MANDATORY) and their corresponding unique identifiers, all of this in the second tab-separated value. Please refer to the 5th step in the previous stage 'runPlate'. You can check the provided template [`samples2population`](https://github.com/darizasu/work/blob/master/GBS-pipeline/samples2population.txt) file. In the following example, the sample BAT_093 was sequenced three different times, and it will be compared to see if all the three samples are exactly the same genotype. Notice the second tab-separated value has the same prefix followed by unique `-pXXX` identifiers:
+
+    /bionas1/bean/GBSplates/21/mapping/v2.1/BAT_093	BAT_093-p21	6	12
+    /bionas1/bean/GBSplates/23/mapping/v2.1/BAT_093-D02	BAT_093-p23D02	6	12
+    /bionas1/bean/GBSplates/23/mapping/v2.1/BAT_093-E10	BAT_093-p23E10	6	12
+
+The complete file path for [`samples2population`](https://github.com/darizasu/work/blob/master/GBS-pipeline/samples2population.txt) should be specified in the `samples2population` parameter in the [`compareRepeatedSamples.sh`](https://github.com/darizasu/work/blob/master/GBS-pipeline/compareRepeatedSamples.sh) script.
+
+2) Specify the list of variants for your species in VCF format in the parameter `myVariants` in the script [`compareRepeatedSamples.sh`](https://github.com/darizasu/work/blob/master/GBS-pipeline/compareRepeatedSamples.sh).
+
+3) Modify the running parameters of [`compareRepeatedSamples.sh`](https://github.com/darizasu/work/blob/master/GBS-pipeline/compareRepeatedSamples.sh) properly, which are all the lines in the script before the "DO NOT MODIFY ANYTHING FROM THIS POINT FORWARD" warning.
+Then run the script from the ${WD} directory. It could take several hours depending on the number of repeated samples you want to compare and the density of variants provided in the `myVariants` parameter:
+
+`./compareRepeatedSamples.sh &`
+
+Once the [`compareRepeatedSamples.sh`](https://github.com/darizasu/work/blob/master/GBS-pipeline/compareRepeatedSamples.sh) finishes, `${WD}/genotyping` contains a single directory for every repeated sample identified in [`samples2population`](https://github.com/darizasu/work/blob/master/GBS-pipeline/samples2population.txt). Taking back the example above, the directory `${WD}/genotyping/BAT_093` contains the following files:
+
+
+* `BAT_093_bowtie2_NGSEP.log`
+* `BAT_093_bowtie2_NGSEP.vcf.gz`  This is a VCF file with variants discovered from the merged BAM file. This should 
+* `BAT_093_bowtie2_sorted.bam`  This is a merged BAM file that contains alignments for all the BAM files with the prefix `BAT_093` identified in [`samples2population`](https://github.com/darizasu/work/blob/master/GBS-pipeline/samples2population.txt).
+* `BAT_093_CompareVCF_q60.txt`
+
+* `BAT_093-p21_bowtie2_sorted.bam`
+* `BAT_093-p23D02_bowtie2_sorted.bam`  These are symlinks to the original BAM files identified in [`samples2population`](https://github.com/darizasu/work/blob/master/GBS-pipeline/samples2population.txt).
+* `BAT_093-p23E10_bowtie2_sorted.bam`
+
+
 ## runPopulation.sh
 Please follow these steps to run the second stage of the pipeline, called "runPopulation":
 
