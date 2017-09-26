@@ -19,7 +19,7 @@ Then run Deconvolution, Trimming and Mapping, it could take several hours:
 
    Once the mapping step is done, a file called `readPosStats_XX.txt` is created in `${WD}`. It contains the total sequencing error bias along the read position for unique-mapping reads (first column) and multi-mapping reads (second column), calculated for all the samples in the plate. Plot these results along the read position. You have to decide the i5 and i3 parameters by looking at how many consecutive positions in the 5' end and the 3' end have a high sequencing error bias (guide yourself by the behavior of the slope). i5 is to ignore this many base pairs from the 5' end of the reads. i3 is to ignore this many base pairs from the 3' end of the reads, check [NGSEP - FindVariants](https://sourceforge.net/projects/ngsep/files/Library/) manual page. Once you have decided the value for these parameters, specify them in the script [`runPlate.sh`](https://github.com/darizasu/work/blob/master/GBS-pipeline/runPlate.sh) accordingly.
 
-4) Run Variant discovery, it could take 1 -2h:
+4) Run Variant discovery, it could take 1 - 2h. Notice that the specific parameters set to run this module are: `FindVariants -h 0.0001 -maxBaseQS 30 -minQuality 0 noRep -noRD -noRP -maxAlnsPerStartPos 100`This step could be termed as 'DiscoveryVariants':
 
 `./runPlate.sh 'V' &`
 
@@ -94,5 +94,32 @@ Now, based on the analysis you've done for every `sample_name_CompareVCF_q60.txt
 
 
 ## runPopulation.sh
-Please follow these steps to run the second stage of the pipeline, called "runPopulation":
+Please follow these steps to run the second stage of the pipeline, called "runPopulation". This stage will produce the final population VCF file using [NGSEP](https://sourceforge.net/projects/ngsep/files/Library/). It consists on five optional and sequential steps:
+0) After creating a [`samples2population`](https://github.com/darizasu/work/blob/master/GBS-pipeline/samples2population.txt) file, make sure that the second tab-separated column does not contain repeated values (in case you have repeated samples you can run the optional stage of this pipeline called "compareRepeatedSamples"). Please refer to the 5th step of the stage called "runPlate" on how to create this file properly. Then, modify the running parameters of [`runPopulation.sh`](https://github.com/darizasu/work/blob/master/GBS-pipeline/runPopulation.sh), which are all the lines in the script before the "DO NOT MODIFY ANYTHING FROM THIS POINT FORWARD" warning.
+
+1) In the first step, this script runs NGSEP - MergeVariants to produce a list of variants from all the samples in your population (samples in [`samples2population`](https://github.com/darizasu/work/blob/master/GBS-pipeline/samples2population.txt)). To execute only this step, run:
+
+`./runPopulation.sh 'V' &`
+
+In case you already have a list of variants in VCF format that you'd like to use, specify it in the parameter `myVariants` in the script [`runPopulation.sh`](https://github.com/darizasu/work/blob/master/GBS-pipeline/runPopulation.sh). In this case, you can avoid running this first step.
+
+2) In the second step, NGSEP - FindVariants will be executed. This time, the list of variants produced / provided in the previous step works as a template of positions to be genotyped on each of your samples. In that sense, this step could be termed as 'GenotypingVariants' rather than 'DiscoveryVariants' (see the 4th step in this pipeline). Notice that the specific parameters set to run this module are: `FindVariants -h 0.0001 -maxBaseQS 30 -minQuality 0 noRep -noRD -noRP -maxAlnsPerStartPos 100`. To execute only this step, run:
+
+`./runPopulation.sh 'G' &`
+
+Once this step is completed, you'll see a single VCF file for every sample in your population in `${WD}/genotyping`
+
+3 - 4) The third step runs NGSEP - MergeVCF. This module merges all the single VCF files produced in the previous step and delivers a single VCF file for your population. Then the fourth step consists in annotating this VCF file using NGSEP - Annotate. This module uses a reference annotation file in GFF3 format that you should specify in the `REFGFF` parameter in the [`runPopulation.sh`](https://github.com/darizasu/work/blob/master/GBS-pipeline/runPopulation.sh) script. To run only the 3rd and 4th step:
+
+`./runPopulation.sh 'MA' &`
+
+5) The fifth step runs NGSEP - FilterVCF with some regularly used parameters that we have standardized for our breeding program. Running this step is optional as you may want to specify your own Filters for your VCF file. Notice that this step will remove variants that fall into repetitive regions (the list of repetitive regions is provided in the parameter `REPS` in the [`runPopulation.sh`](https://github.com/darizasu/work/blob/master/GBS-pipeline/runPopulation.sh) script). In addition, it sets the FilterVCF parameters `-s -fi -minMAF 0.05 -maxOH 0.06`. To execute only this step:
+
+`./runPopulation.sh 'F' &`
+
+Once it is completed, you'll have produced a VCF file for your population that is ready to be used in downstream analyses. Of course, you can run all the 5 steps for this second stage at once:
+
+`./runPopulation.sh 'VGMAF' &`
+
+
 
