@@ -1,4 +1,4 @@
-#CompareFrijoles
+# CompareFrijoles
 
 written by: darizasu
 
@@ -11,8 +11,9 @@ It uses python 3 (tested on v.3.4.3) and R (tested on v.3.3.2).
 The script CompareVCF_plot.R uses the R package 'LSD' (tested on v.3.0)
 Check you already have it installed before running the script.
 
-The variable 'VCFlocation' in the script `runCompareFrijoles.sh` is the directory where the VCF file for 
-every sample is located. Modify it accordingly
+The variable 'VCFlocation' in the script `runCompareFrijoles.sh` is the
+directory where the VCF file for every sample is located.
+Modify it accordingly
 
 To execute the scripts follow this example:
 
