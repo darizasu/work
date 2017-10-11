@@ -1,4 +1,3 @@
-# This is CompareFrijoles
 # CompareFrijoles
 
 written by: darizasu
