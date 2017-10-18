@@ -44,36 +44,29 @@ runBGLR <- function(y, trait, X, pop.split, yBP, model, saveAt = paste(outDir,'/
 		cat("ERROR: model",model,"is not available. Continuing...\n")
 		return(list( result=NA, cor=NA))
 	}
+  
+  
+  yNA = y[,trait]
+  iNA = which(pop.split == 1)
+  yNA[iNA] = NA
+  
+  fm = BGLR( y=yNA, ETA=ETA, 
+             nIter=1000, burnIn=200, thin=10, 
+             verbose=FALSE, saveAt=saveAt)
+  
+  TP = fm$yHat[iNA]
+    
   if (missing(yBP)){
     
-    yNA = y[,trait]
-    iNA = which(pop.split == 1)
-    yNA[iNA] = NA
-    
-    fm = BGLR( y=yNA, ETA=ETA, 
-               nIter=1000, burnIn=200, thin=10, 
-               verbose=FALSE, saveAt=saveAt)
-    TP = fm$yHat[iNA]
     BP = y[iNA,trait]
     
-  } else if (missing(pop.split)){
-    
-    fm = BGLR( y=y[,trait], ETA=ETA, 
-               nIter=1000, burnIn=200, thin=10, 
-               verbose=FALSE, saveAt=saveAt)
-    
-    rn_y = row.names.data.frame(y) ; rn_yBP = row.names.data.frame(yBP)
-    samples_to_test = intersect(rn_y, rn_yBP)
-    TP = fm$yHat[rn_y %in% samples_to_test]
-    BP = yBP[samples_to_test,trait]
-    
   } else {
-    stop('Either a pop.split or a yBP must be provided (each exclude each other)')
+    
+    BP = yBP[iNA,trait]
+    
   }
 	
-  return( list(
-    result=fm,
-    cor=cor(TP, BP, use="complete.obs", method="pearson")
-  ) )
+  return( list(result = fm,
+               cor    = cor(TP, BP, use="complete.obs", method="pearson")  ) )
   
 }

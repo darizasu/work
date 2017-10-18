@@ -21,7 +21,6 @@ if (length(args) < 4) {
   
 } else {
   
-  # load models
   library(BGLR)
   
   model  = vargs[[1]]
@@ -37,35 +36,39 @@ if (length(args) < 4) {
   
   cat('\n\n',length(all_phen_gen),'individuals will be used in this run.\n\n')
   
-  if (is.na(vargs[[3]][2])){
-    cat('model\ttrait\trandomPop\tstartedAt\n')
-    for (i in 1:100){
-      for (prior in model){
-        for (trait in traits){
-          cat(prior,"\t",trait,"\tpop",i,"\t",paste(Sys.time(),'\n'), sep = '')
-          set.seed(1234)
-          cors[[trait]][i,prior] = round( runBGLR(y = phen, trait = trait, X = geno , pop.split = combinat[,i], model = prior )$cor, 5)
-          write.table(cors[[trait]], paste(outDir,"/cors_",trait,".txt",sep=''), sep="\t", row.names=FALSE, quote = F)
-        }
-      }
-    }
-  } else {
+  cat('model\ttrait\trandomPop\tcorr\tstartedAt\n')
+  
+  for (i in 1:100){
     
-    shared_traits = intersect(names(phen), names(phen2))
-    traits = traits[traits %in% shared_traits]
-    cat('model\ttrait\tbreedingPop\ttrainingPop\tstartedAt\n')
-    for(trait in traits){
-      for (prior in model){
+    for (prior in model){
+      
+      for (trait in traits){
+        
+        set.seed(1234)
+        
+        if (is.na(vargs[[3]][2])){
+          
+          if (trait %in% names(phen)){
+            myCorr = round( runBGLR(y = phen, trait = trait, X = geno , pop.split = combinat[,i], model = prior )$cor, 5)
+            cat(prior,"\t",trait,"\tpop",i,"\t",myCorr,"\t",paste(Sys.time(),'\n'), sep = '')
+          }
+          
+        } else {
+          
+          shared_traits = intersect(names(phen), names(phen2))
+          
+          if (trait %in% shared_traits){
+            myCorr = round( runBGLR(y = phen, trait = trait, X = geno , pop.split = combinat[,i], yBP = phen2, model = prior )$cor, 5)
+            cat(prior,"\t",trait,"\tpop",i,"\t",myCorr,"\t",paste(Sys.time(),'\n'), sep = '')
+          }
+          
+        }
         
         
-        cat(prior,"\t",trait,"\t",vargs[[3]][2],"\t",vargs[[3]][1],"\t",paste(Sys.time(),'\n'), sep = '')
-        cors[[trait]][,prior] = round( runBGLR(y = phen, trait = trait, X = geno , yBP = phen2, model = prior )$cor, 5)
-        write.table(cors[[trait]], paste(outDir,"/cors_",trait,".txt",sep=''), sep="\t", row.names=FALSE, quote = F)
         
+        }
       }
     }
     
   }
-  
-}
 

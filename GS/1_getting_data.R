@@ -3,10 +3,6 @@ setwd("/bioinfo1/projects/bean/VEF/genomic_selection/scripts")
 samp = read.delim('../geno/VEF_noMeso_annotated_repMasked_q40_s_fi_maf05_oh06_i210_imputed_rrBLUP_samples.txt', header = F)[,1]
 geno = read.table('../geno/VEF_noMeso_annotated_repMasked_q40_s_fi_maf05_oh06_i210_imputed_rrBLUP.in', row.names = as.character(samp), header = F)
 phen = read.delim(phen, row.names = 1)
-if (!is.na(phen2)){
-  phen2 = read.delim(phen2, row.names = 1)
-  combinat = NA
-}
 
 
 # Get the number of lines with genotype and phenotype data per trait
@@ -18,7 +14,7 @@ if (!is.na(phen2)){
 #   names(phen_num)[i] <- names(phen)[i]
 # }
 
-# Get the list of lines that have all phenotyped variables
+# Get the list of lines that have all variables phenotyped
 
 all_phen_list = list()
 
@@ -32,9 +28,33 @@ all_phen_list = Reduce(intersect, all_phen_list)
 
 all_phen_gen = intersect(as.character(samp), all_phen_list)
 
+# If there is a second dataset, get the list of lines that will be analyzed from both datasets
+
+if (!is.na(phen2)){
+  
+  phen2 = read.delim(phen2, row.names = 1)
+  all_phen_list2 = list()
+  
+  for (name in names(phen2)){
+    all_phen_list2[[name]] = rownames(phen2)[! is.na(phen2[,name])]
+  }
+  
+  # Get the list of lines that have all traits phenotyped
+  all_phen_list2 = Reduce(intersect, all_phen_list2)
+  
+  # Get the list of samples with all phenotyped variables and genotypic data.
+  
+  all_phen_gen2 = intersect(as.character(samp), all_phen_list2)
+  
+  # Get the list of samples with pheno & geno data from both datasets
+  
+  all_phen_gen = intersect(all_phen_gen, all_phen_list2)
+  
+}
+
 # Generate partitions: 70% TP - 30% BP
 
-if (is.na(phen2) && is.na(combinat)){
+if (is.na(combinat)){
   combinat <- matrix(0, nrow=length(all_phen_gen), ncol=100, dimnames=list(row=all_phen_gen))
   
   for( i in 1:100 ){
@@ -42,30 +62,26 @@ if (is.na(phen2) && is.na(combinat)){
     combinat[ sample( 1:length(all_phen_gen), length(all_phen_gen)*0.3 ) , i] = 1
   }
   
-  # hist(rowSums(combinat[,1:100]),100)
   write.table(combinat, paste(outDir,'/combinat.mtx',sep=''), sep = '\t', col.names = F, quote = F)
   
 } else if (is.character(combinat)){
   
   combinat = as.matrix(read.delim(combinat,row.names = 1, header = F))
+  combinat = combinat[all_phen_gen,]
   
 }
 
+# All of the tables have the same lines, which comes from all_phen_gen
+
 geno = geno[all_phen_gen,]
 phen = phen[all_phen_gen,]
-if (is.matrix(combinat)) combinat = combinat[all_phen_gen,]
+if (is.data.frame(phen2)) phen2 = phen2[all_phen_gen,]
 
-# X = geno
-# Z = scale(X, center = T, scale = T)
-# G = tcrossprod(Z) / ncol(Z)
-# G = read.delim('VEF_annotated_repMasked_q40_s_fi_maf05_oh06_i290_kinship.txt', row.names = 1)
-# G = as.matrix(G[all_phen_gen,all_phen_gen])
-
-trait.cors = data.frame(BayesA = NA, BayesB = NA, BayesC = NA, BayesRR = NA, BLasso = NA, BLassof = NA, RKHS = NA, GBLUP = NA, FIXED = NA)
-
-cors = list()
-
-for (trait in traits){
-  cors[[trait]] = trait.cors
-}
+# trait.cors = data.frame(BayesA = NA, BayesB = NA, BayesC = NA, BayesRR = NA, BLasso = NA, BLassof = NA, RKHS = NA, GBLUP = NA, FIXED = NA)
+# 
+# cors = list()
+# 
+# for (trait in traits){
+#   cors[[trait]] = trait.cors
+# }
 
