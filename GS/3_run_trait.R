@@ -10,14 +10,15 @@ vargs <- strsplit(args, ",")
 if (length(args) < 4) {
   
   stop("At least four arguments must be supplied:\n
-  \n  Usage: Rscript 3_run_trait <prior1>,...,<priorN> <trait1>,...,<traitN> <phenotypes> <outDir>\n
+  \n  Usage: Rscript 3_run_trait <prior1>,...,<priorN> <trait1>,...,<traitN> <phenotype(s)> <outDir>\n
   Positional arguments:
   \tprior     :  Comma separated list of priors to be tested.  Available options are 
   \t\t    BayesA,BayesB,BayesC,BayesRR,BLasso,FIXED,BLassof,RKHS,GBLUP\n 
   \ttrait     :  Comma separated list of traits to be tested\n
-  \tphenotypes:  File with the phenotype values for every line. One column per trait. If two phenotypes are provided, then the first one will be used for the Training population, and the second will be used as the Breeding population. In such case, no iterations will be performed.
+  \tphenotypes:  File with the phenotype values for every line. One column per trait. If two phenotypes are provided, then the first one will be used for the Training population, and the second will be used as the Breeding population.
   \t\t    First row is header line.\n
-  \toutDir   :   A directory path where the output wil be stored\n\n", call.=FALSE)
+  \toutDir    :  A directory path where the output wil be stored\n
+  \tcombinat  :\ This is an optional argument. In case you already have a matrix with population partitions, you can provide it in here.\n\n", call.=FALSE)
   
 } else {
   
@@ -35,6 +36,9 @@ if (length(args) < 4) {
   # model= c( "BayesA", "BayesB", "BayesC", "BLasso", "BLassof", "RKHS", "GBLUP" )
   
   cat('\n\n',length(all_phen_gen),'individuals will be used in this run.\n\n')
+  if (exists('all_phen_gen2')){
+    cat('\n\n',length(all_phen_gen2)-nrow(combinat),' phenotypes will be predicted from zero.\n\n')
+  } 
   
   cat('model\ttrait\trandomPop\tcorr\tstartedAt\n')
   
@@ -61,14 +65,9 @@ if (length(args) < 4) {
             myCorr = round( runBGLR(y = phen, trait = trait, X = geno , pop.split = combinat[,i], yBP = phen2, model = prior )$cor, 5)
             cat(prior,"\t",trait,"\tpop",i,"\t",myCorr,"\t",paste(Sys.time(),'\n'), sep = '')
           }
-          
         }
-        
-        
-        
         }
       }
     }
-    
   }
 

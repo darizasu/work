@@ -22,7 +22,7 @@ for (name in names(phen)){
   all_phen_list[[name]] = rownames(phen)[! is.na(phen[,name])]
 }
 
-all_phen_list = Reduce(intersect, all_phen_list)
+all_phen_list = Reduce(intersect, all_phen_list) # Make a large intersection with Reduce
 
 # Get the list of samples with all phenotyped variables and genotypic data.
 
@@ -48,7 +48,11 @@ if (!is.na(phen2)){
   
   # Get the list of samples with pheno & geno data from both datasets
   
-  all_phen_gen = intersect(all_phen_gen, all_phen_list2)
+  all_phen_gen = intersect(all_phen_gen, all_phen_gen2)
+  
+  # By adding the following, those lines that were not phenotyped in the 1st dataset will be predicted as well
+  
+  all_phen_gen2 = union(all_phen_gen, all_phen_gen2)
   
 }
 
@@ -73,15 +77,11 @@ if (is.na(combinat)){
 
 # All of the tables have the same lines, which comes from all_phen_gen
 
+if(is.data.frame(phen2)){
+  all_phen_gen = all_phen_gen2 # Those lines that were not phenotyped in the 1st dataset will be predicted as well
+  phen2 = phen2[all_phen_gen,]
+}
+
 geno = geno[all_phen_gen,]
 phen = phen[all_phen_gen,]
-if (is.data.frame(phen2)) phen2 = phen2[all_phen_gen,]
-
-# trait.cors = data.frame(BayesA = NA, BayesB = NA, BayesC = NA, BayesRR = NA, BLasso = NA, BLassof = NA, RKHS = NA, GBLUP = NA, FIXED = NA)
-# 
-# cors = list()
-# 
-# for (trait in traits){
-#   cors[[trait]] = trait.cors
-# }
 
