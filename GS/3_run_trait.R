@@ -35,9 +35,10 @@ if (length(args) < 4) {
   source("./2_prepare_models.R")
   # model= c( "BayesA", "BayesB", "BayesC", "BLasso", "BLassof", "RKHS", "GBLUP" )
   
-  cat('\n\n',length(all_phen_gen),'individuals will be used in this run.\n\n')
+  cat('\n\n',length(all_phen_gen),'individuals will be used in this run.\n')
   if (exists('all_phen_gen2')){
-    cat('\n\n',length(all_phen_gen2)-nrow(combinat),' phenotypes will be predicted from zero.\n\n')
+    # cat('\n\n',length(all_phen_gen2)-nrow(combinat),' phenotypes will be predicted from zero.\n\n')
+    cat('\n\n',sum(!all_phen_gen2 %in% rownames(combinat)),' phenotypes will be predicted from zero.\n\n')
   } 
   
   cat('model\ttrait\trandomPop\tcorr\tstartedAt\n')

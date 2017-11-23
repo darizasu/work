@@ -50,10 +50,6 @@ if (!is.na(phen2)){
   
   all_phen_gen = intersect(all_phen_gen, all_phen_gen2)
   
-  # By adding the following, those lines that were not phenotyped in the 1st dataset will be predicted as well
-  
-  all_phen_gen2 = union(all_phen_gen, all_phen_gen2)
-  
 }
 
 # Generate partitions: 70% TP - 30% BP
