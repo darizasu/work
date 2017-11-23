@@ -53,7 +53,7 @@ runBGLR <- function(y, trait, X, pop.split, yBP, model, saveAt = paste(outDir,'/
   iNA = is.na(yNA) # Those lines that were not phenotyped in the 1st dataset will be predicted as well.
   
   fm = BGLR( y=yNA, ETA=ETA, 
-             nIter=1000, burnIn=200, thin=10, 
+             nIter=10000, burnIn=1000, thin=5, 
              verbose=FALSE, saveAt=saveAt)
   
   TP = fm$yHat[iNA] # Predicted phenotypes from validation population
