@@ -31,8 +31,8 @@ if (length(args) < 4) {
   phen2  = vargs[[3]][2]
   outDir = vargs[[4]]
   
-  source("./1_getting_data_test.R")
-  source("./2_prepare_models_test.R")
+  source("./1_getting_data.R")
+  source("./2_prepare_models.R")
   # model= c( "BayesA", "BayesB", "BayesC", "BLasso", "BLassof", "RKHS", "GBLUP" )
   
   # cat('\n\n',length(all_phen_gen),'individuals will be used in this run.\n')
@@ -41,6 +41,8 @@ if (length(args) < 4) {
   # }
   
   names_list = TP_BP_partition(phen,samp,traits,phen2)
+  
+  save(names_list, file = paste(outDir,'/names_list.RData',sep=''))
 
   cat('model\ttrait\trandomPop\tcorr\tstartedAt\n')
   

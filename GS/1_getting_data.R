@@ -71,8 +71,6 @@ TP_BP_partition = function (myPhen,myGen,traits,myPhen2){
      
   }
   
-  save(namesList,paste(outDir,'/namesList.RData',sep=''))
-  
   return(namesList)
 
 }
