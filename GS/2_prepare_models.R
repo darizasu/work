@@ -5,40 +5,40 @@
 
 setwd("/bioinfo1/projects/bean/VEF/genomic_selection/scripts")
 
-runBGLR <- function(y, trait, X, pop.split, yBP, model, saveAt = paste(outDir,'/',sep=''),
+runBGLR <- function(y, trait, X, pop.split, yBP, model, saveAt = paste(outDir,'/',sep=''), myNames,
                     Gmatrix = '../geno/VEF_noMeso_annotated_repMasked_q40_s_fi_maf05_oh06_i210_imputed_kinship.txt')
 {
 	       if (model=="BayesA"){
-		ETA = list(list(model="BayesA", X=X))
+		ETA = list(list(model="BayesA", X=X[myNames,]))
 	} else if (model=="BayesB") {
-		ETA = list(list(model="BayesB", X=X))
+		ETA = list(list(model="BayesB", X=X[myNames,]))
 	} else if (model=="BayesC") {
-		ETA = list(list(model="BayesC", X=X))
+		ETA = list(list(model="BayesC", X=X[myNames,]))
 	} else if (model=="BayesRR") {
-		ETA = list(list(model="BRR",    X=X))
+		ETA = list(list(model="BRR",    X=X[myNames,]))
 	} else if (model=="BLasso") {
-		ETA = list(list(model="BL",     X=X))
+		ETA = list(list(model="BL",     X=X[myNames,]))
 	} else if (model=="FIXED") {
-		ETA = list(list(model="FIXED",  X=X))
+		ETA = list(list(model="FIXED",  X=X[myNames,]))
 	} else if (model=="BLassof") {
-		# Z = scale(X)
+		# Z = scale(X[myNames,])
 		# G = tcrossprod(Z) / ncol(Z)
 	  G = read.delim(Gmatrix, row.names = 1)
-	  G = as.matrix(G[all_phen_gen,all_phen_gen])
+	  G = as.matrix(G[myNames,myNames])
 		L = svd(G)
 		Lm = L$u %*% diag(L$d)^(1/2)
 		ETA = list(list(model="BL",     X=Lm))
 	} else if (model=="RKHS") {
-		D = as.matrix( dist( X, method="euclidean")) ^2
+		D = as.matrix( dist( X[myNames,], method="euclidean")) ^2
 		D = D / mean(D)
 		h = 0.5
 		K = exp(-h * D)
 		ETA = list(list(model="RKHS",   K=K))
 	} else if (model=="GBLUP") {
-		# Z = scale(X)
+		# Z = scale(X[myNames,])
 		# G = tcrossprod(Z) / ncol(Z)
 	  G = read.delim(Gmatrix, row.names = 1)
-	  G = as.matrix(G[all_phen_gen,all_phen_gen])
+	  G = as.matrix(G[myNames,myNames])
 		ETA = list(list(model="RKHS",   K=G))
 	} else {
 		cat("ERROR: model",model,"is not available. Continuing...\n")
@@ -47,7 +47,7 @@ runBGLR <- function(y, trait, X, pop.split, yBP, model, saveAt = paste(outDir,'/
   
   # Phenotypes from the Validation population are set to NA
   
-  yNA = y[,trait]
+  yNA = y[myNames,trait]
   iNA = which(pop.split == 1)
   yNA[iNA] = NA
   iNA = is.na(yNA) # Those lines that were not phenotyped in the 1st dataset will be predicted as well.
@@ -64,6 +64,7 @@ runBGLR <- function(y, trait, X, pop.split, yBP, model, saveAt = paste(outDir,'/
     
   } else {
     
+    yBP = yBP[myNames,]
     BP = yBP[iNA,trait]
     
   }
