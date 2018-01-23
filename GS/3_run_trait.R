@@ -11,7 +11,7 @@ if (length(new.pckgs)){
   install.packages(pkgs=new.pckgs, repos="http://cran.r-project.org", dependencies = T)
 }
 
-cat('Command line arguments:\n',commandArgs(trailingOnly=TRUE),'\n\n')
+cat('Command line arguments:\n',commandArgs(),'\n\n')
 
 library(argparse)
 
