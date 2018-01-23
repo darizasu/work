@@ -6,7 +6,7 @@
 setwd("/bioinfo1/projects/bean/VEF/genomic_selection/scripts")
 
 runBGLR <- function(y, trait, X, pop.split, yBP, model, saveAt = paste(outDir,'/',sep=''), myNames,
-                    Gmatrix = '../geno/VEF_noMeso_annotated_repMasked_q40_s_fi_maf05_oh06_i210_imputed_kinship.txt')
+                    Gmatrix = Gmatrix)
 {
 	       if (model=="BayesA"){
 		ETA = list(list(model="BayesA", X=X[myNames,]))

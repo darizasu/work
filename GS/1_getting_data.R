@@ -1,7 +1,7 @@
 setwd("/bioinfo1/projects/bean/VEF/genomic_selection/scripts")
 
-samp = read.delim('../geno/VEF_noMeso_annotated_repMasked_q40_s_fi_maf05_oh06_i210_imputed_rrBLUP_samples.txt', header = F)[,1]
-geno = read.table('../geno/VEF_noMeso_annotated_repMasked_q40_s_fi_maf05_oh06_i210_imputed_rrBLUP.in', row.names = as.character(samp), header = F)
+samp = read.delim(samp, header = F)[,1]
+geno = read.table(geno, row.names = as.character(samp), header = F)
 phen = read.delim(phen, row.names = 1)
 
 phen2 = if (!is.na(phen2)) read.delim(phen2, row.names = 1) else NA
