@@ -11,6 +11,8 @@ if (length(new.pckgs)){
   install.packages(pkgs=new.pckgs, repos="http://cran.r-project.org", dependencies = T)
 }
 
+cat('Command line arguments:\n',commandArgs(trailingOnly=TRUE),'\n\n')
+
 library(argparse)
 
 parser = ArgumentParser()
@@ -35,7 +37,7 @@ args = parser$parse_args()
 setwd("/bioinfo1/projects/bean/VEF/genomic_selection/scripts")
 
 if (any(sapply(args, is.null))){
-  system('./3_run_trait_TEST.R -h')
+  system('./3_run_trait.R -h')
   stop('One or more arguments are not valid. Check usage for more details.')
 }
 
@@ -50,13 +52,13 @@ samp = args$s
 geno = args$g
 Gmatrix = args$G
 
-source("./1_getting_data_TEST.R")
-source("./2_prepare_models_TEST.R")
+source("./1_getting_data.R")
+source("./2_prepare_models.R")
 
 names_list = TP_BP_partition(phen,samp,traits,phen2)
 
 save(names_list, file = paste(outDir,'/names_list.RData',sep=''))
-cat('model\ttrait\trandomPop\tcorr\tstartedAt\n')
+cat('model\ttrait\trandomPop\tcorr\tfinishedAt\n')
 
 for (i in 1:100){
   
