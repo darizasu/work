@@ -11,8 +11,6 @@ if (length(new.pckgs)){
   install.packages(pkgs=new.pckgs, repos="http://cran.r-project.org", dependencies = T)
 }
 
-cat('Command line arguments:\n',commandArgs(),'\n\n')
-
 library(argparse)
 
 parser = ArgumentParser()
@@ -31,15 +29,22 @@ parser$add_argument("-g", metavar='file', default='../geno/VEF_noMeso_annotated_
                     help = "File with numeric genotypes. You can check \'rrBLUP\' package input for details. [Default %(default)s]")
 parser$add_argument("-G", metavar='file', default='../geno/VEF_noMeso_annotated_repMasked_q40_s_fi_maf05_oh06_i210_imputed_kinship.txt',
                     help = "Kinship matrix. First row and first column are the sample names. [Default %(default)s]")
+parser$add_argument("-n", metavar='.RData', default='NA',
+                    help = "NOT REQUIRED. Saved workspace with population partition matrices and genotype names. This file can be retrieved from a previous run of this script. Default behavior is to create a new file.")
 
 args = parser$parse_args()
 
-setwd("/bioinfo1/projects/bean/VEF/genomic_selection/scripts")
 
 if (any(sapply(args, is.null))){
-  system('./3_run_trait.R -h')
+  
+  system('/bioinfo1/projects/bean/VEF/genomic_selection/scripts/3_run_trait.R -h')
   stop('One or more arguments are not valid. Check usage for more details.')
+  
 }
+
+cat('Command line arguments:\n',commandArgs(),'\n\n')
+
+setwd("/bioinfo1/projects/bean/VEF/genomic_selection/scripts")
 
 library(BGLR)
 
@@ -51,13 +56,22 @@ outDir = args$o
 samp = args$s
 geno = args$g
 Gmatrix = args$G
+names_list = args$n
 
-source("./1_getting_data.R")
-source("./2_prepare_models.R")
+source("/bioinfo1/projects/bean/VEF/genomic_selection/scripts/1_getting_data.R")
+source("/bioinfo1/projects/bean/VEF/genomic_selection/scripts/2_prepare_models.R")
 
-names_list = TP_BP_partition(phen,samp,traits,phen2)
+if (names_list == 'NA'){
+  
+  names_list = TP_BP_partition(phen,samp,traits,phen2)
+  save(names_list, file = paste(outDir,'/names_list.RData',sep=''))
+  
+} else {
+  
+  load(names_list)
+  
+}
 
-save(names_list, file = paste(outDir,'/names_list.RData',sep=''))
 cat('model\ttrait\trandomPop\tcorr\tfinishedAt\n')
 
 for (i in 1:100){
@@ -80,7 +94,8 @@ for (i in 1:100){
                                   X = geno[myNames,],
                                   pop.split = combinat[,i],
                                   model = prior,
-                                  myNames = myNames
+                                  myNames = myNames,
+                                  G = Gmatrix
                                   )$cor,
                           digits = 5)
           cat(prior,"\t",trait,"\tpop",i,"\t",myCorr,"\t",paste(Sys.time(),'\n'), sep = '')
@@ -100,7 +115,8 @@ for (i in 1:100){
                                   pop.split = combinat[,i],
                                   yBP = phen2,
                                   model = prior,
-                                  myNames = myNames
+                                  myNames = myNames,
+                                  G = Gmatrix
                                   )$cor,
                           digits = 5)
           cat(prior,"\t",trait,"\tpop",i,"\t",myCorr,"\t",paste(Sys.time(),'\n'), sep = '')

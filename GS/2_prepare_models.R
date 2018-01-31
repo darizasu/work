@@ -5,8 +5,7 @@
 
 setwd("/bioinfo1/projects/bean/VEF/genomic_selection/scripts")
 
-runBGLR <- function(y, trait, X, pop.split, yBP, model, saveAt = paste(outDir,'/',sep=''), myNames,
-                    Gmatrix = Gmatrix)
+runBGLR <- function(y, trait, X, pop.split, yBP, model, G, saveAt = paste(outDir,'/',sep=''), myNames)
 {
 	       if (model=="BayesA"){
 		ETA = list(list(model="BayesA", X=X[myNames,]))
@@ -23,7 +22,8 @@ runBGLR <- function(y, trait, X, pop.split, yBP, model, saveAt = paste(outDir,'/
 	} else if (model=="BLassof") {
 		# Z = scale(X[myNames,])
 		# G = tcrossprod(Z) / ncol(Z)
-	  G = read.delim(Gmatrix, row.names = 1)
+	  G = read.delim(G, row.names = 1, header = F)
+	  colnames(G) = rownames(G)
 	  G = as.matrix(G[myNames,myNames])
 		L = svd(G)
 		Lm = L$u %*% diag(L$d)^(1/2)
@@ -37,7 +37,8 @@ runBGLR <- function(y, trait, X, pop.split, yBP, model, saveAt = paste(outDir,'/
 	} else if (model=="GBLUP") {
 		# Z = scale(X[myNames,])
 		# G = tcrossprod(Z) / ncol(Z)
-	  G = read.delim(Gmatrix, row.names = 1)
+	  G = read.delim(G, row.names = 1, header = F)
+	  colnames(G) = rownames(G)
 	  G = as.matrix(G[myNames,myNames])
 		ETA = list(list(model="RKHS",   K=G))
 	} else {
