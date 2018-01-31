@@ -6,6 +6,15 @@ phen = read.delim(phen, row.names = 1)
 
 phen2 = if (!is.na(phen2)) read.delim(phen2, row.names = 1) else NA
 
+if (rand_SNPs != 'NA'){
+  
+  if (ncol(geno) < as.integer(rand_SNPs)) stop('The number of SNPs to select is higher than the actual number of SNPs available')
+  
+  geno = geno[,sample(1:ncol(geno), as.integer(rand_SNPs))]
+  write.table(geno, paste(outDir,'/Geno_matrix_',rand_SNPs,'SNPs_rrBLUP.in',sep=''),sep = ' ', col.names=F, quote=F, row.names=F)
+  cat(rand_SNPs," SNPs have been selected from the original genotype matrix. The selected SNPs were saved in ", paste(outDir,'/Geno_matrix_',rand_SNPs,'SNPs_rrBLUP.in',sep=''),'\n\n')
+  
+}
 # Get the number of lines with genotype and phenotype data per trait
 
 # phen_num <-numeric(0)

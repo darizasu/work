@@ -21,16 +21,18 @@ parser$add_argument("-t", type='character', metavar='Trait(s)',
                     help="Comma separated list of traits to be tested")
 parser$add_argument("-p", type="character", metavar='File',
                     help="File with the phenotype values for every line. One column per trait. If two phenotypes are provided (separated by commas), then the first one will be used for the Training population, and the second will be used as the Validation population. First row is header line")
-parser$add_argument("-o", metavar='Directory', 
-                    help = "Output directory")
-parser$add_argument("-s", metavar='file', default='../geno/VEF_noMeso_annotated_repMasked_q40_s_fi_maf05_oh06_i210_imputed_rrBLUP_samples.txt',
+parser$add_argument("-o", metavar='Directory', default='.',
+                    help = "Output directory. [Default /bioinfo1/projects/bean/VEF/genomic_selection/scripts]")
+parser$add_argument("-s", metavar='file', default='../geno/VEF_noMeso_annotated_repMasked_q40_s_fi_oh06_i210_maf0.05_imputed_rrBLUP_samples.txt',
                     help = "File with a list of samples. One sample per line. [Default %(default)s]")
-parser$add_argument("-g", metavar='file', default='../geno/VEF_noMeso_annotated_repMasked_q40_s_fi_maf05_oh06_i210_imputed_rrBLUP.in',
+parser$add_argument("-g", metavar='file', default='../geno/VEF_noMeso_annotated_repMasked_q40_s_fi_oh06_i210_maf0.05_imputed_rrBLUP.in',
                     help = "File with numeric genotypes. You can check \'rrBLUP\' package input for details. [Default %(default)s]")
-parser$add_argument("-G", metavar='file', default='../geno/VEF_noMeso_annotated_repMasked_q40_s_fi_maf05_oh06_i210_imputed_kinship.txt',
+parser$add_argument("-G", metavar='file', default='../geno/VEF_noMeso_annotated_repMasked_q40_s_fi_oh06_i210_maf0.05_imputed_kinship.txt',
                     help = "Kinship matrix. First row and first column are the sample names. [Default %(default)s]")
 parser$add_argument("-n", metavar='.RData', default='NA',
                     help = "NOT REQUIRED. Saved workspace with population partition matrices and genotype names. This file can be retrieved from a previous run of this script. Default behavior is to create a new file.")
+parser$add_argument("-r", metavar='integer', default='NA',
+                    help = "NOT REQUIRED. Keep these many randomly selected SNPs from the original matrix, the others will be filtered out. The final genotype matrix will be saved in the output directory. Default behavior is to use all available SNPs.")
 
 args = parser$parse_args()
 
@@ -57,6 +59,7 @@ samp = args$s
 geno = args$g
 Gmatrix = args$G
 names_list = args$n
+rand_SNPs = args$r
 
 source("/bioinfo1/projects/bean/VEF/genomic_selection/scripts/1_getting_data.R")
 source("/bioinfo1/projects/bean/VEF/genomic_selection/scripts/2_prepare_models.R")
