@@ -75,7 +75,7 @@ TP_BP_partition = function (myPhen,myGen,traits,myPhen2){
     
     for( i in 1:100 ){
       # 0 = train ; 1 = test
-      namesList[[trait]]$combinat[ sample( 1:length(all_phen_gen), length(all_phen_gen)*0.3 ) , i] = 1
+      namesList[[trait]]$combinat[ sample( 1:length(all_phen_gen), length(all_phen_gen) * trainPop ) , i] = 1
     }
      
   }
