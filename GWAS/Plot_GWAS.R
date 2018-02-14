@@ -154,11 +154,13 @@ qq = function (pvector, ...){
   abline(0, 1, col = "red")
 }
 
+library(qvalue)
+
 plotManhattan = function(dataset, logfile, dataset_base, heritabilities = '/home/dariza/tassel_output/VEF_noMeso_mlm-PCA/heritabilities.txt'){
   
   setwd(getwd())
   
-  ntaxa = system(paste("grep 'Number of Taxa' ",logfile," | grep -v 401", sep=''), intern = T)
+  ntaxa = system(paste("grep 'Number of Taxa' ",logfile," | tail -n 1", sep=''), intern = T)
   system(paste("sed -i 's/YDHA_2_05m.40g/YDHA_2_05m_40g/g'", dataset))
   system(paste("sed -i 's/YDHPL_2_10p.40g/YDHPL_2_10p_40g/g'", dataset))
   system(paste("sed '/SCAFFOLD/d'",dataset,">", paste(dataset,'.tmp',sep='')))
@@ -179,6 +181,11 @@ plotManhattan = function(dataset, logfile, dataset_base, heritabilities = '/home
     layout(matrix(c(1,1,2), nrow=1))
     manhattan(dataset_trait, ylim=c(0,10), main=paste(trait,dataset_base,sep=' - '), suggestiveline=F, genomewideline=F, cex = 0.5)
     bonf = 0.05/nrow(dataset_trait)
+    fdr = qvalue(p = dataset_trait[,'P'])
+    if (any(fdr$qvalues <= 0.05, na.rm=T)){
+      fdr = max(dataset_trait$P[fdr$qvalues <= 0.05], na.rm=T)
+      abline(h=-log10(fdr), col='#26B14C')
+    }
     abline(h=-log10(bonf), col='red')
     title(sub = ntaxa, adj = 0, line = 3, cex.sub = 0.85)
     name_2_h2s = gsub('_noMeso','',dataset_base)
