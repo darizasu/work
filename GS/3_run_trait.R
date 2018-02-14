@@ -19,7 +19,7 @@ parser$add_argument("-m", type='character', metavar='model(s)',
                     help="Comma separated list of priors to be tested. Available options are BayesA,BayesB,BayesC,BayesRR,BLasso,FIXED,BLassof,RKHS,GBLUP")
 parser$add_argument("-t", type='character', metavar='trait(s)',
                     help="Comma separated list of traits to be tested")
-parser$add_argument("-p", type="character", metavar='file',
+parser$add_argument("-p", type="character", metavar='file(s)',
                     help="File with the phenotype values for every line. One column per trait. If two phenotype files are provided (separated by commas), then the first one will be used as Training population, and the second will be used as Validation population. First row is header line.")
 parser$add_argument("-o", metavar='directory', default='.',
                     help = "Output directory. [Default /bioinfo1/projects/bean/VEF/genomic_selection/scripts]")
@@ -33,7 +33,7 @@ parser$add_argument("-f", metavar='integer', default='30',
                     help = "Percentage of the total population to be used as validation population. This value must be between 0 - 100. [Default %(default)s]")
 parser$add_argument("-n", metavar='.RData', default='NA',
                     help = "NOT REQUIRED. Saved workspace with population partition matrices and genotype names. This file can be retrieved from a previous run of this script. Default behavior is to create a new file.")
-parser$add_argument("-r", metavar='character', default='NA',
+parser$add_argument("-r", metavar='integer', default='NA',
                     help = "NOT REQUIRED. Keep these many randomly selected SNPs from the original matrix, the others will be filtered out. The final genotype matrix will be saved in the output directory. Default behavior is to use all available SNPs.")
 
 
@@ -42,14 +42,12 @@ args = parser$parse_args()
 
 if (any(sapply(args, is.null))){
   
-  system('/bioinfo1/projects/bean/VEF/genomic_selection/scripts/3_run_trait.R -h')
+  system('/bioinfo1/projects/bean/VEF/genomic_selection/scripts/3_run_trait.R -h') # This script should be run no matter where it is located. Change this.
   stop('One or more arguments are not valid. Check usage for more details.')
   
 }
 
 cat('\nCommand line arguments:\n',commandArgs(),'\n\n')
-
-setwd("/bioinfo1/projects/bean/VEF/genomic_selection/scripts")
 
 library(BGLR)
 
@@ -75,20 +73,36 @@ if (any(validPop > 100 | validPop <= 0)){
   
 }
 
-source("/bioinfo1/projects/bean/VEF/genomic_selection/scripts/1_getting_data.R")
-source("/bioinfo1/projects/bean/VEF/genomic_selection/scripts/2_prepare_models.R")
+source("/bioinfo1/projects/bean/VEF/genomic_selection/scripts/1_getting_data.R")   # This script should be run no matter where it is located. Change this.
+source("/bioinfo1/projects/bean/VEF/genomic_selection/scripts/2_prepare_models.R") # This script should be run no matter where it is located. Change this.
 
 if (names_list == 'NA'){
   
   names_list = TP_BP_partition(phen,samp,traits,phen2)
   save(names_list, file = paste(outDir,'/names_list.RData',sep=''))
-  cat('The population partition matrices and genotype names have been saved in:',
+  cat('The population partition matrices and genotype names have been saved at:',
       paste(outDir,'/names_list.RData',sep=''),'\n\n')
   
 } else {
   
-  cat('Loading population partition matrices and genotype names from:', names_list,'\n\n')
+  cat('Loading population partition matrices and genotype names from:',names_list,'\n\n')
   load(names_list)
+  
+  for (trait in names(names_list)){
+    
+    if (is.data.frame(phen2)){
+      
+      cat('Trait\tTP-len\tVP-len\n')
+      cat(trait,'\t',names_list[[trait]]$len['apg1'],'\t',names_list[[trait]]$len['apg2'],'\n\n')
+      
+    } else {
+      
+      cat('Trait\tLines\n')
+      cat(trait,'\t',names_list[[trait]]$len['apg1'],'\n\n')
+      
+    }
+    
+  }
   
 }
 

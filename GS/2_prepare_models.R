@@ -3,8 +3,6 @@
  # pop.split = random permutations of samples
  # model= c( "BayesA", "BayesB", "BayesC", "BayesRR", "BLasso", "BLassof", "FIXED", "RKHS", "GBLUP" )#,"rrBLUP")
 
-setwd("/bioinfo1/projects/bean/VEF/genomic_selection/scripts")
-
 runBGLR <- function(y, trait, X, pop.split, yBP, model, G, saveAt = paste(outDir,'/',sep=''), myNames)
 {
 	       if (model=="BayesA"){
@@ -71,6 +69,6 @@ runBGLR <- function(y, trait, X, pop.split, yBP, model, G, saveAt = paste(outDir
   }
 	
   return( list(result = fm,
-               cor    = cor(TP, BP, use="complete.obs", method="pearson")  ) )
+               cor    = cor(TP, BP, use="pairwise.complete.obs", method="pearson")  ) )
   
 }
