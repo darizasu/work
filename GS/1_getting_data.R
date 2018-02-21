@@ -1,4 +1,4 @@
-setwd("/bioinfo1/projects/bean/VEF/genomic_selection/scripts")
+# setwd("/bioinfo1/projects/bean/VEF/genomic_selection/scripts")
 
 samp = read.delim(samp, header = F)[,1]
 geno = read.table(geno, row.names = as.character(samp), header = F)
@@ -79,9 +79,9 @@ TP_BP_partition = function (myPhen,myGen,traits,myPhen2){
       
     }
     
-    namesList[[trait]]$combinat = matrix(0, nrow=length(all_phen_gen), ncol=100, dimnames=list(row=all_phen_gen))
+    namesList[[trait]]$combinat = matrix(0, nrow=length(all_phen_gen), ncol=rand_pars, dimnames=list(row=all_phen_gen))
     
-    for( i in 1:100 ){
+    for( i in 1:rand_pars ){
       # 0 = train ; 1 = test
       namesList[[trait]]$combinat[ sample( 1:length(all_phen_gen), length(all_phen_gen) * validPop ) , i] = 1
     }

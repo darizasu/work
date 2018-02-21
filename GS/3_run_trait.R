@@ -31,10 +31,13 @@ parser$add_argument("-G", metavar='file', default='../geno/VEF_noMeso_annotated_
                     help = "Kinship matrix. First row and first column are the sample names. [Default %(default)s]")
 parser$add_argument("-f", metavar='integer', default='30',
                     help = "Percentage of the total population to be used as validation population. This value must be between 0 - 100. [Default %(default)s]")
+parser$add_argument("-i", metavar='integer', default='100',
+                    help = "Number of random partition populations to be used for prediction ability assessment. Any positive integer is accepted. Proceed with caution here, the more populations the longer it takes to complete the whole analysis. [Default %(default)s]")
 parser$add_argument("-n", metavar='.RData', default='NA',
                     help = "NOT REQUIRED. Saved workspace with population partition matrices and genotype names. This file can be retrieved from a previous run of this script. Default behavior is to create a new file.")
 parser$add_argument("-r", metavar='integer', default='NA',
                     help = "NOT REQUIRED. Keep these many randomly selected SNPs from the original matrix, the others will be filtered out. The final genotype matrix will be saved in the output directory. Default behavior is to use all available SNPs.")
+
 
 
 args = parser$parse_args()
@@ -62,6 +65,7 @@ Gmatrix = args$G
 names_list = args$n
 rand_SNPs = args$r
 validPop = as.integer(args$f)
+rand_pars = as.integer(args$i)
 
 if (any(validPop > 100 | validPop <= 0)){
   
@@ -85,10 +89,15 @@ if (names_list == 'NA'){
   
 } else {
   
+  namesListFile = names_list # The string containing the location of the .Rdata file is saved in namesListFile
   cat('Loading population partition matrices and genotype names from:',names_list,'\n\n')
-  load(names_list)
+  load(names_list) # The 'name_list' object is no longer a string with the location of the .Rdata file, instead is the list that was contained in the file.
   
   for (trait in names(names_list)){
+    
+    if (ncol(names_list[[trait]]$combinat) < rand_pars){
+      stop(paste('There are only',ncol(names_list[[trait]]$combinat),'population partitions available at',namesListFile,'for the trait',trait,'and you requested',rand_pars, "partitions with '-i' option."))
+    }
     
     if (is.data.frame(phen2)){
       
@@ -108,7 +117,7 @@ if (names_list == 'NA'){
 
 cat('model\ttrait\trandomPop\tcorr\tfinishedAt\n')
 
-for (i in 1:100){
+for (i in 1:rand_pars){
   
   for (prior in model){
     
