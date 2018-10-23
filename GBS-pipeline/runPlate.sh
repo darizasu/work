@@ -2,24 +2,27 @@
 
   # Key variables to specify
 
-# This is the working directory full path. It should contain two directories: 
-# 'reads' and 'mapping'. 'reads' must have a subdirectory called 'lane', 
-# which contains the raw reads.
-WD=/bioinfo1/projects/bean/GBSplates/23
+# This is the full path for the working directory .
+# It must (MUST) contain the following structure inside:
+   # /path/to/working/directory
+      # \_ reads
+        # \_ lane
+# The subdirectory 'lane' contains the raw sequencing reads in FASTQ format
+WD=/bioinfo1/projects/bean/GBSplates_27_28/27
 
+# Check NGSEP Deconvolute <INDEX_FILE> parameter for more info about the following ${INDEXFILE} file
 # This file should be located at ${WD}/reads/lane , otherwise its path must be specified. 
-# Check NGSEP Deconvolute <INDEX_FILE> parameter for more info.
-INDEXFILE=/bioinfo1/projects/bean/GBSplates/23/reads/lane/barcodeMap_plate23.txt
+INDEXFILE=/bioinfo1/projects/bean/GBSplates_27_28/27/reads/lane/barcodeMap_plate27.txt
 
+# Check NGSEP Deconvolute -d flag for more info about the following ${FILES2DECONV} file
 # This file should be located at ${WD}/reads/lane , otherwise its path must be specified. 
-# Check NGSEP Deconvolute -d flag for more info.
-FILES2DECONV=/bioinfo1/projects/bean/GBSplates/23/reads/lane/lanes_plate23.txt
+FILES2DECONV=/bioinfo1/projects/bean/GBSplates_27_28/27/reads/lane/lanes_plate27.txt
 
-# This is your plate's name
-runName=plate_23
+# This is any given ID for your plate
+runName=plate_27
 
 # The number of subprocesses you want to run. It depends on the number of available cores.
-numThreads=6
+numThreads=10
 
 # Specify the task(s) you want to perform. Include only the initial capital letter in a single string.
 # It can include 'D'econvolution, 'T'rimming, 'M'apping, 'V'ariant-Discovery.
@@ -27,23 +30,29 @@ numThreads=6
 TASKS=$1
 
 # Ignore this many base pairs from the 5' and 3' ends in NGSEP FindVariants.
-# To get this numbers, run this script with the tasks 'DTM', then run the 'calculateReadPosGBS.sh' script 
-# to get sequencing error bias for the entire plate and plot those results. Then decide the i5 
-# and i3 parameters and specify them in the following lines. 
+# To get this numbers, run this script with the tasks 'DTM'.
+# Once the mapping step is done, a file called 'readPosStats_XX.txt' is created in ${WD}.
+# It contains the total sequencing error bias along the read position for 
+# unique-mapping reads (first column) and multi-mapping reads (second column),
+# calculated for all the samples in the plate. You have to decide the i5 and i3
+# parameters by looking at how many consecutive positions in the 5' end and the 3' end 
+# have a high sequencing error bias (guide yourself by the behavior of the slope).
+# Then decide the i5 and i3 parameters and specify them in the following lines. 
 # Then run again this script with the task 'V'.
-i5=6
-i3=12
+i5=1
+i3=8
 
-# This file must (MUST) be located at ${WD}/reads. This is a fasta file containing adapter 
+# The following ${adapters} file is a FASTA file containing adapter 
 # sequences to be removed from the deconvoluted reads. Check Trimmomatic manual for more info.
-adapters=adapters_21-26.fa
+adapters=/bioinfo1/projects/bean/GBSplates_27_28/27/reads/lane/adapters_27-28.fa
 
   # Path to Software used
 
-NGSEP=/data/software/NGSEPcore_3.0.2.jar
+NGSEP=/home/dariza/software/NGSEP/NGSEPcore_3.3.0.jar
 BOWTIE2=/data/software/bowtie2-2.3.0/bowtie2
 PICARD=/data/software/picard-tools-1.140/picard.jar
 Trimmomatic=/bioinfo1/software/Trimmomatic-0.36/trimmomatic-0.36.jar
+BGZIP=/usr/bin/bgzip
 
   # Reference genome files
 
@@ -57,6 +66,10 @@ STRs=/data/references/bean/v2.1/strs/Pvulgaris_v2_strs.list
 
 
 echo -e '\nThis run was executed by:  '$(whoami)'\n'
+
+# Make sure you DON'T have ASCII text with CRLF line terminators
+dos2unix ${INDEXFILE}
+dos2unix ${FILES2DECONV}
 
 if [ ! -d ${WD}/reads/lane ]; then echo 'The raw reads path '${WD}'/reads/lane does not exist !'; exit 1; fi
 cd ${WD}/reads/lane
@@ -80,7 +93,7 @@ echo -e 'This run contains the following samples:\n'${list[@]}'\n'
 function assignThreads {
   for i in ${!list[@]}
   do  samplesPerList=`expr ${i} % ${numThreads}`
-    echo ${list[${i}]} >> tmpList_${samplesPerList}.tmp
+    echo ${list[${i}]} >> tmpList_${samplesPerList}_${runName}.tmp
   done
 }
 
@@ -98,7 +111,7 @@ function doWeHaveReads {
 
 
 #### ------------------------------ ####
-#### ------- Deconvolution -------- ####
+#### --------- Demultiplex -------- ####
 
 if [ ! -d ${WD}/reads ]; then echo 'The raw-reads path '${WD}'/reads/lane does not exist !'; exit 1; fi
 cd ${WD}/reads/lane
@@ -106,9 +119,9 @@ cd ${WD}/reads/lane
 if [[ ${TASKS} == *D* ]]
 then
 
-  echo -e '\nStarting deconvolution on '${runName}' files\n'$(date)'\n'
+  echo -e '\nStarting demultiplexing on '${runName}' files\n'$(date)'\n'
 
-  java -jar ${NGSEP} Deconvolute -o ${WD}/reads -d ${FILES2DECONV} ${INDEXFILE}
+  java -jar ${NGSEP} Demultiplex -o ${WD}/reads -d ${FILES2DECONV} ${INDEXFILE}
 
 fi
 
@@ -116,7 +129,7 @@ fi
 doWeHaveReads
 ################
 
-echo -e '\nDeconvolution on '${runName}' files is done\n'$(date)'\n'
+echo -e '\nDemultiplexing on '${runName}' files is done\n'$(date)'\n'
 
 
 #### ------------------------------ ####
@@ -136,7 +149,7 @@ then
   assignThreads
   myNum=0
 
-  for tmpFile in tmpList*tmp
+  for tmpFile in tmpList_*${runName}.tmp
   do
 
     # From the tmpList_XXX.tmp file (which is a chunk of the original list) 
@@ -179,7 +192,7 @@ then
   done
   wait
 
-  rm *tmp
+  rm tmpList_*${runName}.tmp
 
   ################
   doWeHaveReads
@@ -220,7 +233,7 @@ then
   assignThreads
   myNum=0
 
-  for tmpFile in tmpList*tmp
+  for tmpFile in tmpList_*${runName}.tmp
   do
 
     # From the tmpList_XXX.tmp file (which is a chunk of the original list) 
@@ -268,7 +281,7 @@ then
       echo $(date) 'Calculating statistics for '${p}
 
       java -Xmx3g -jar ${NGSEP} QualStats ${REF} ${p}_bowtie2_sorted.bam >& ${p}_bowtie2_readpos.stats
-      java -Xmx3g -jar ${NGSEP} CoverageStats ${p}_bowtie2_sorted.bam ${p}_bowtie2_coverage.stats >& ${p}_bowtie2_coverage.log
+      # java -Xmx3g -jar ${NGSEP} CoverageStats ${p}_bowtie2_sorted.bam ${p}_bowtie2_coverage.stats >& ${p}_bowtie2_coverage.log
 
       echo $(date) ${p}' is DONE'
 
@@ -277,13 +290,13 @@ then
   done
   wait
 
-  rm *tmp
+  rm tmpList_*${runName}.tmp
 
   ################
   # Check mapping failures
   numErrors=0
   for i in ${!list[@]}
-  do if [[ ! `tail -1 ${list[${i}]}_bowtie2_coverage.stats` == *More* ]]
+  do if [[ ! `tail -1 ${list[${i}]}_bowtie2_readpos.stats` == *Bases* ]]
     then numErrors=`expr ${numErrors} + 1`
     echo 'Error: Mapping for sample '${list[${i}]}' failed at some point !!'
   fi; done
@@ -349,7 +362,7 @@ then
   assignThreads
   myNum=0
 
-  for tmpFile in tmpList*tmp
+  for tmpFile in tmpList_*${runName}.tmp
   do
 
     # From the tmpList_XXX.tmp file (which is a chunk of the original list) 
@@ -365,16 +378,16 @@ then
       echo $(date) 'Variant discovery in '${p}
 
       java -Xmx3g -jar ${NGSEP} FindVariants -h 0.0001 -maxBaseQS 30 -minQuality 40 \
-      -noRep -noRD -noRP -maxAlnsPerStartPos 100 -ignore5 ${i5} -ignore3 ${i3} -sampleId ${p} \
+      -maxAlnsPerStartPos 100 -ignore5 ${i5} -ignore3 ${i3} -sampleId ${p} \
       -knownSTRs ${STRs} ${REF} ${p}_bowtie2_sorted.bam ${p}_bowtie2_NGSEP >& ${p}_bowtie2_NGSEP.log
-      bgzip ${p}_bowtie2_NGSEP.vcf
+      ${BGZIP} ${p}_bowtie2_NGSEP.vcf
 
     done ) &
 
   done
   wait
 
-  rm *tmp
+  rm tmpList_*${runName}.tmp
 
   ################
   # Check variant discovery failures
