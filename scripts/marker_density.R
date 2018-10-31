@@ -29,13 +29,13 @@ marker_density <- function(markers, bin = 2.5e5, chromID = 'X.CHROM', posID = 'P
 
   if (tools::file_ext(extCheck) == 'csv') extCheck = 'csv' else extCheck = 'table'
 
-  initial = read_the_table(ext = extCheck, file = markers, nrows = 10, comment.char = '', header = T)
+  initial = read_the_table(ext = extCheck, file = markers, nrows = 10, comment.char = '##', header = T)
   classes = sapply(initial, class)
   index = grep( paste( c(chromID,posID), collapse = '|'), names(markers) )
 
   classes[-index] = "NULL"
 
-  markers = read_the_table(ext = extCheck, file = markers, colClasses = classes, comment.char = '', header = T)
+  markers = read_the_table(ext = extCheck, file = markers, colClasses = classes, comment.char = '##', header = T)
 
   chroms <- unique(markers[,chromID])
   nchroms <- length(chroms)
@@ -99,7 +99,7 @@ marker_density <- function(markers, bin = 2.5e5, chromID = 'X.CHROM', posID = 'P
     if (tools::file_ext(pero_centro) == 'gz') extCheck = tools::file_path_sans_ext(pero_centro) else extCheck = pero_centro
     if (tools::file_ext(extCheck) == 'csv') extCheck = 'csv' else extCheck = 'table'
 
-    segTable = read_the_table(ext = extCheck, file = pero_centro, comment.char = '', header = T)
+    segTable = read_the_table(ext = extCheck, file = pero_centro, comment.char = '##', header = T)
     
     pericent = c('pStart','pEnd') %in% colnames(segTable)
     
