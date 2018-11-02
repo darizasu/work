@@ -35,6 +35,8 @@ parser$add_argument("-i", metavar='integer', default='100',
                     help = "Number of random partition populations to be used for prediction ability assessment. Any positive integer is accepted. Proceed with caution here, the more populations the longer it takes to complete the whole analysis. [Default %(default)s]")
 parser$add_argument("-n", metavar='.RData', default='NA',
                     help = "NOT REQUIRED. Saved workspace with population partition matrices and genotype names. This file can be retrieved from a previous run of this script. Default behavior is to create a new file.")
+parser$add_argument("-c", "--combine", action="store_true", default=TRUE,
+                    help="Find traits with exactly the same set of genotypes and assign them a common random population partition for cross validation. Default: [default]")
 parser$add_argument("-r", metavar='integer', default='NA',
                     help = "NOT REQUIRED. Keep these many randomly selected SNPs from the original matrix, the others will be filtered out. The final genotype matrix will be saved in the output directory. Default behavior is to use all available SNPs.")
 
@@ -45,7 +47,7 @@ args = parser$parse_args()
 
 if (any(sapply(args, is.null))){
   
-  system('/bioinfo1/projects/bean/VEF/genomic_selection/scripts/3_run_trait.R -h') # This script should be run no matter where it is located. Change this.
+  system('3_run_trait.R -h')
   stop('One or more arguments are not valid. Check usage for more details.')
   
 }
@@ -54,18 +56,19 @@ cat('\nCommand line arguments:\n',commandArgs(),'\n\n')
 
 library(BGLR)
 
-model  = unlist(strsplit(args$m,','))
-traits = unlist(strsplit(args$t,','))
-phen   = unlist(strsplit(args$p,','))[1]
-phen2  = unlist(strsplit(args$p,','))[2]
-outDir = args$o
-samp = args$s
-geno = args$g
-Gmatrix = args$G
+model      = unlist(strsplit(args$m,','))
+traits     = unlist(strsplit(args$t,','))
+phen       = unlist(strsplit(args$p,','))[1]
+phen2      = unlist(strsplit(args$p,','))[2]
+outDir     = args$o
+samp       = args$s
+geno       = args$g
+Gmatrix    = args$G
 names_list = args$n
-rand_SNPs = args$r
-validPop = as.integer(args$f)
-rand_pars = as.integer(args$i)
+common     = args$combine
+rand_SNPs  = args$r
+validPop   = as.integer(args$f)
+rand_pars  = as.integer(args$i)
 
 if (any(validPop > 100 | validPop <= 0)){
   
@@ -77,12 +80,57 @@ if (any(validPop > 100 | validPop <= 0)){
   
 }
 
-source("/bioinfo1/projects/bean/VEF/genomic_selection/scripts/1_getting_data.R")   # This script should be run no matter where it is located. Change this.
-source("/bioinfo1/projects/bean/VEF/genomic_selection/scripts/2_prepare_models.R") # This script should be run no matter where it is located. Change this.
+samp = read.delim(samp, header = F)[,1]
+geno = read.table(geno, row.names = as.character(samp), header = F)
+phen = read.delim(phen, row.names = 1)
+
+phen2 = if (!is.na(phen2)) read.delim(phen2, row.names = 1) else NA
+
+if (rand_SNPs != 'NA'){
+  
+  if (ncol(geno) < as.integer(rand_SNPs)) stop('The number of SNPs to select is higher than the actual number of SNPs available')
+  
+  geno = geno[,sample(1:ncol(geno), as.integer(rand_SNPs))]
+  
+  write.table(geno, paste(outDir,'/Geno_matrix_',rand_SNPs,'SNPs_rrBLUP.in',sep=''),sep = ' ',
+              col.names=F, quote=F, row.names=F)
+  
+  cat(rand_SNPs," SNPs have been selected from the original genotype matrix. The selected SNPs were saved at ",
+      paste(outDir,'/Geno_matrix_',rand_SNPs,'SNPs_rrBLUP.in',sep=''),'\n\n')
+  
+}
+
+# source("1_getting_data.R")
+source("https://raw.githubusercontent.com/darizasu/work/master/GS/TP_BP_partition.R")
+# source("2_prepare_models.R") 
+source("https://raw.githubusercontent.com/darizasu/work/master/GS/runBGLR.R")
 
 if (names_list == 'NA'){
   
   names_list = TP_BP_partition(phen,samp,traits,phen2)
+  
+  if (common){
+    
+    rand_pops = lapply(names_list, `[[`, 'all_phen_gen')
+    unique_pops = unique(rand_pops)
+    
+    pops_n = sapply(unique_pops, function(x) which( sapply(rand_pops, identical, x) ))
+    
+    for (i in 1:length(pops_n)){
+      
+      first = names_list[[ pops_n[[i]][1] ]]$combinat
+      
+      for (j in pops_n[[i]]){
+        
+        names_list[[j]]$combinat = first
+        
+      }
+    }
+    
+    cat('\nA common population partition matrix was assigned to traits with exactly the same set of genotypes:\n')
+    print(lapply(pops_n, names), end='\n\n')
+  }
+  
   save(names_list, file = paste(outDir,'/names_list.RData',sep=''))
   cat('The population partition matrices and genotype names have been saved at:',
       paste(outDir,'/names_list.RData',sep=''),'\n\n')
