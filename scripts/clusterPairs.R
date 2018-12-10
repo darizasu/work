@@ -10,21 +10,14 @@ clusterPairs <- function(data){
   require(data.table)
   
   # Remove duplicated pairs of samples
-<<<<<<< HEAD
   cat('\nRemoving duplicated pairs in the table ...\n')
-=======
->>>>>>> c1952da957125382b647c6e91eaf9b07c1d7f9f5
   data <- t(apply(X = data, MARGIN = 1, sort))
   data <- unique(data)
   
   # In case there is any pair with the same genotype, place it in the bottom of the matrix
   if(any(data[,1] == data[,2])){
     
-<<<<<<< HEAD
     orphans <- data[data[,1] == data[,2],]
-=======
-    orphans <- as.character(data[data[,1] == data[,2],])
->>>>>>> c1952da957125382b647c6e91eaf9b07c1d7f9f5
     data <- data[data[,1] != data[,2],]
     data <- rbind(data, orphans)
   }
@@ -32,12 +25,9 @@ clusterPairs <- function(data){
   # Sort the matrix by 1st and then by 2nd column
   data <- data[do.call(order, as.data.frame(data)),]
   
-<<<<<<< HEAD
   # Put all genotypes in a vector to display at the end
   nGenIDs <- length(unique(as.vector(data)))
   
-=======
->>>>>>> c1952da957125382b647c6e91eaf9b07c1d7f9f5
   # Remove any remaining rownames in the matrix
   dimnames(data) = NULL
   
@@ -50,10 +40,7 @@ clusterPairs <- function(data){
   # Place the first row of the matrix in the list
   if(length(myList) == 0) myList[[1]] <- unname(data[1,])
   
-<<<<<<< HEAD
   cat('Finding clusters for ', nGenIDs, ' samples:\n')
-=======
->>>>>>> c1952da957125382b647c6e91eaf9b07c1d7f9f5
   for(i in 2:nrow(data)){
     
     # For each row, 'A' and 'B' are logical vectors indicating which element(s)
@@ -94,7 +81,7 @@ clusterPairs <- function(data){
         myList[which(C)[-1]] <- NULL
       }
       
-    # If none of the genotypes is present in any cluster, create a new cluster
+      # If none of the genotypes is present in any cluster, create a new cluster
     } else {
       
       myList[[length(myList) + 1]] <- unname(data[i,])
@@ -104,7 +91,6 @@ clusterPairs <- function(data){
     setTxtProgressBar(pb = pb, value = i)
   }
   
-<<<<<<< HEAD
   # Convert myList to a matrix and sort by number of samples per cluster
   myClusters <- t(sapply(myList, "[", seq(max(lengths(myList)))))
   s <- order(apply(X = myClusters, MARGIN = 1, function(x) length( unique( na.omit(x) ))), decreasing = T)
@@ -121,8 +107,4 @@ clusterPairs <- function(data){
   
   # Return the final matrix with clusters
   return(myClusters)
-=======
-  # Convert the list and its elements into a matrix
-  return(t(sapply(myList, "[", seq(max(lengths(myList))))))
->>>>>>> c1952da957125382b647c6e91eaf9b07c1d7f9f5
 }
