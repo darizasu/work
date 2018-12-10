@@ -91,16 +91,19 @@ clusterPairs <- function(data){
     setTxtProgressBar(pb = pb, value = i)
   }
   
-  # Convert myList to a matrix
+  # Convert myList to a matrix and sort by number of samples per cluster
   myClusters <- t(sapply(myList, "[", seq(max(lengths(myList)))))
+  s <- order(apply(X = myClusters, MARGIN = 1, function(x) length( unique( na.omit(x) ))), decreasing = T)
+  myClusters <- myClusters[s,]
   
   # Print a brief summary and close the progress bar
   cat('\n\n', length(myList),'\t\tclusters were identified for ', nGenIDs, ' samples.\n', sep = '')
+  close(pb)
   
+  # Print how many clusters have only 1 sample
   uniqueClusters <- sum( apply(X = myClusters, MARGIN = 1, function(x) length( unique( na.omit(x) ))) == 1)
   cat(uniqueClusters,'\t\tclusters had only 1 sample.\n', sep = '')
   
-  close(pb)
   
   # Return the final matrix with clusters
   return(myClusters)
