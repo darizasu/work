@@ -124,7 +124,7 @@ marker_density <- function(markers, bin = 2.5e5, chromID = 'X.CHROM', posID = 'P
       cEnd = c(rbind(segTable$cEnd,segTable$cEnd)) - 3e5
       segments(x0 = xSegm, y0 = cStart, x1 = xSegm, y1 = cEnd, col = 'white')
       
-    } else warning("The centromeres will not be drawn")
+    } else message("The centromeres will not be drawn")
   }
 
   par(fig = c(.4, .6, .1, .2), new = T)
