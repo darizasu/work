@@ -8,21 +8,21 @@
       # \_ reads
         # \_ lane
 # The subdirectory 'lane' contains the raw sequencing reads in FASTQ format
-WD=/bioinfo1/projects/bean/GBSplates_27_28/27
+WD=/path/to
 
 # Check NGSEP Deconvolute <INDEX_FILE> parameter for more info about the following ${INDEXFILE} file
 # This file should be located at ${WD}/reads/lane , otherwise its path must be specified. 
-INDEXFILE=/bioinfo1/projects/bean/GBSplates_27_28/27/reads/lane/barcodeMap_plate27.txt
+INDEXFILE=/path/to/reads/lane/INDEXFILE.txt
 
 # Check NGSEP Deconvolute -d flag for more info about the following ${FILES2DECONV} file
 # This file should be located at ${WD}/reads/lane , otherwise its path must be specified. 
-FILES2DECONV=/bioinfo1/projects/bean/GBSplates_27_28/27/reads/lane/lanes_plate27.txt
+FILES2DECONV=/path/to/reads/lane/FILES2DECONV.txt
 
 # This is any given ID for your plate
-runName=plate_27
+runName=plate_name
 
 # The number of subprocesses you want to run. It depends on the number of available cores.
-numThreads=10
+numThreads=6
 
 # Specify the task(s) you want to perform. Include only the initial capital letter in a single string.
 # It can include 'D'econvolution, 'T'rimming, 'M'apping, 'V'ariant-Discovery.
@@ -40,24 +40,24 @@ TASKS=$1
 # Then decide the i5 and i3 parameters and specify them in the following lines. 
 # Then run again this script with the task 'V'.
 i5=1
-i3=8
+i3=10
 
 # The following ${adapters} file is a FASTA file containing adapter 
 # sequences to be removed from the deconvoluted reads. Check Trimmomatic manual for more info.
-adapters=/bioinfo1/projects/bean/GBSplates_27_28/27/reads/lane/adapters_27-28.fa
+adapters=/path/to/reads/lane/adaptersGBS.fa
 
   # Path to Software used
 
-NGSEP=/home/dariza/software/NGSEP/NGSEPcore_3.3.0.jar
-BOWTIE2=/data/software/bowtie2-2.3.0/bowtie2
-PICARD=/data/software/picard-tools-1.140/picard.jar
-Trimmomatic=/bioinfo1/software/Trimmomatic-0.36/trimmomatic-0.36.jar
-BGZIP=/usr/bin/bgzip
+NGSEP=/path/to/software/NGSEP/NGSEPcore_3.3.0.jar
+BOWTIE2=/path/to/software/bowtie2-2.3.0/bowtie2
+PICARD=/path/to/software/picard-tools-1.140/picard.jar
+Trimmomatic=/path/to/software/Trimmomatic-0.36/trimmomatic-0.36.jar
+BGZIP=/path/to/software/bgzip
 
   # Reference genome files
 
-REF=/data/references/bean/v2.1/bowtie2/Pvulgaris_442_v2.0.fa
-STRs=/data/references/bean/v2.1/strs/Pvulgaris_v2_strs.list
+REF=/path/to/references/Pvulgaris_442_v2.0.fa
+STRs=/path/to/references/Pvulgaris_v2_strs.list
 
 
 #### ---------------------------------------------------------------------- ####

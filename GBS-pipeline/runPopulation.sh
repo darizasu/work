@@ -4,10 +4,10 @@
 
 # This is the working directory full path. It creates the directories 'genotyping' 
 # and 'population' in case they don't exist.
-WD=/bioinfo1/projects/bean/all_genotypes
+WD=/path/to
 
 # This is your population's name
-popName=all_bean_summary
+popName=myPopulation
 
 # The number of subprocesses you want to run. It depends on the number of available cores.
 numThreads=6
@@ -20,10 +20,10 @@ TASKS=$1
 # This file contains the sample ID to be removed from the VCF file.
 # Take a look at NGSEP FilterVCF -saf -fs flags
 # The full path to this file must be specified.
-samples2remove=/bioinfo1/projects/bean/all_genotypes/samples2remove_all_bean_summary.txt
+samples2remove=/path/to/samples2remove.txt
 
 # Specify the quality thresholds for FilterVCF
-quality=(20 40 60)
+quality=(40)
 
 # The file specified in the 'samples2population' parameter contains info about 
 # the location of BAM and VCF files for every sample.
@@ -50,13 +50,13 @@ quality=(20 40 60)
  
 # See the example below:
 # /bioinfo2/projects/GBSplates/01/mapping/ALB_213	ALB_213-p01H10	4	10
-samples2population=/bioinfo1/projects/bean/all_genotypes/samples_in_all_bean_summary.txt
+samples2population=/path/to/samples_in_myPopulation.txt
 
 # In case you DO NOT want to run MergeVariants with the whole list of samples
 # specified in 'samples2population', please use the parameter 'myVariants' to specify
 # a list of variants in VCF format with its full path. This file is produced after 
 # running NGSEP MergeVariants with other set of VCF files.
-myVariants=/bioinfo1/projects/bean/WGS_tpg/Variants_WGS_tpg_NO_phred33.vcf.gz
+myVariants=
 
 # The following variables define the file extension that the BAM and VCF files have in 
 # the location specified in the '/path/to/sample' of 'samples2population' (1st column). 
@@ -73,24 +73,21 @@ gtVCFext=bowtie2_NGSEP_gt
 
   # Path to Software used
 
-NGSEP=/data/software/NGSEPcore_3.0.2.jar
-bgzip=/usr/bin/bgzip
-tabix=/usr/bin/tabix
+NGSEP=/path/to/software/NGSEP/NGSEPcore_3.3.0.jar
+bgzip=/path/to/software/bgzip
+tabix=/path/to/software/tabix
 
   # Reference genome files
 
 # The reference genome file, in fasta format indexed using bowtie2-index
-REF=/data/references/bean/v2.1/bowtie2/Pvulgaris_442_v2.0.fa
+REF=/path/to/references/Pvulgaris_442_v2.0.fa
 
 # The annotation file for the reference genome provided previously, in gff3 format.
-REFGFF=/data/references/bean/v2.1/annotation/Pvulgaris_v2_genes.gff3
+REFGFF=/path/to/references/Pvulgaris_v2_genes.gff3
 
 # A file with a list of repetitive regions in the reference genome.
 # Check NGSEP-FilterVCF for more details.
-REPS=/bionas1/bean/datasetPapers/201707_WGS_64vars/reference/Pvulgaris442_repmasked.txt
-
-# A file with the list of sequence identifiers from the reference genome, one by line.
-refIDs=/data/references/bean/v2.1/assembly/Pvulgaris_442_v2.0_seqnames.txt
+REPS=/path/to/references/Pvulgaris442_repmasked.txt
 
 
 #### ---------------------------------------------------------------------- ####
@@ -99,6 +96,13 @@ refIDs=/data/references/bean/v2.1/assembly/Pvulgaris_442_v2.0_seqnames.txt
 
 
 echo -e '\nThis run was executed by:  '$(whoami)'\n'
+
+# Make sure you dont have ASCII text with CRLF line terminators
+dos2unix ${samples2remove} ${samples2population}
+
+# Create the refIDs file from the reference genome
+grep '^>' ${REF} | sed "s/>//g" > ${WD}/Pvulgaris_seqnames.txt
+refIDs=${WD}/Pvulgaris_seqnames.txt
 
 # Get the 1st column from 'samples2population' and put every line 
 # as an element of a bash array called 'locations'. Avoid '#' lines
@@ -215,8 +219,8 @@ then
 
       echo $(date) 'Genotyping population variants in '${myList[${index}]}
 
-      java -Xmx3g -jar ${NGSEP} FindVariants -h 0.0001 -maxBaseQS 30 -minQuality 0 \
-      -noRep -noRD -noRP -maxAlnsPerStartPos 100 -ignore5 ${Ifive[${index}]} -ignore3 ${Ithree[${index}]} \
+      java -Xmx20g -jar ${NGSEP} FindVariants -h 0.0001 -maxBaseQS 30 -minQuality 0 \
+      -maxAlnsPerStartPos 100 -ignore5 ${Ifive[${index}]} -ignore3 ${Ithree[${index}]} \
       -sampleId ${myList[${index}]} -knownVariants ${myVariants} ${REF} ./${myList[${index}]}_${BAMext} \
       ${myList[${index}]}_${gtVCFext} >& ${myList[${index}]}_${gtVCFext}.log
 
@@ -260,7 +264,7 @@ then
 
   echo -e '\nMerging VCF files in '${popName}'\n'$(date)'\n'
 
-  java -Xmx10g -jar ${NGSEP} MergeVCF ${refIDs} ./*_${gtVCFext}.vcf.gz | \
+  java -Xmx30g -jar ${NGSEP} MergeVCF ${refIDs} ./*_${gtVCFext}.vcf.gz | \
   ${bgzip} > ${WD}/population/${popName}.vcf.gz
 
   ################
@@ -268,7 +272,6 @@ then
   && echo "Error: Merge failed at some point !!" && exit 1
   ################
 
-  # ${bgzip} ${WD}/population/${popName}.vcf
   ${tabix} -p vcf ${WD}/population/${popName}.vcf.gz
 
   echo -e '\nVCF files in '${popName}' were merged\n'$(date)'\n'
@@ -303,7 +306,6 @@ then
   && echo "Error: Annotate failed at some point !!" && exit 1
   ################
 
-  # ${bgzip} ${popName}_annotated.vcf
   ${tabix} -p vcf ${popName}_annotated.vcf.gz
 
   echo -e '\nVCF file in '${popName}' was annotated\n'$(date)'\n'
@@ -336,40 +338,40 @@ then
 
   cd ${WD}/population
 
+  test -e ${WD}/population/${popName}_annotated.vcf.gz && ext='_annotated' || ext=''
+
   echo -e '\nRunning filters on '${popName}' files\n'$(date)'\n'
 
   for q in ${quality[@]}
   do
 
   ( java -Xmx6g -jar ${NGSEP} FilterVCF -saf ${samples2remove} \
-    -fs -q ${q} ${popName}_annotated.vcf.gz | ${bgzip} 1> ${popName}_annotated_q${q}.vcf.gz
+    -fs -q ${q} ${popName}${ext}.vcf.gz | ${bgzip} 1> ${popName}${ext}_q${q}.vcf.gz
 
     java -Xmx3g -jar ${NGSEP} SummaryStats -m 0 \
-    ${popName}_annotated_q${q}.vcf.gz > ${popName}_annotated_q${q}_summary.stats
+    ${popName}${ext}_q${q}.vcf.gz > ${popName}${ext}_q${q}_summary.stats
 
     ################
-    test ! -s ${popName}_annotated_q${q}_summary.stats \
-    && echo 'Error: FilterVCF for '${popName}'_annotated_q'${q}'.vcf.gz failed at some point !!' \
+    test ! -s ${popName}${ext}_q${q}_summary.stats \
+    && echo 'Error: FilterVCF for '${popName}${ext}'_q'${q}'.vcf.gz failed at some point !!' \
     && exit 1
     ################
 
-    # ${bgzip} ${popName}_annotated_q${q}.vcf
-    ${tabix} -p vcf ${popName}_annotated_q${q}.vcf.gz
+    ${tabix} -p vcf ${popName}${ext}_q${q}.vcf.gz
 
     java -Xmx6g -jar ${NGSEP} FilterVCF -s -frs ${REPS} -fi -minMAF 0.05 -maxOH 0.06 \
-    ${popName}_annotated_q${q}.vcf.gz | ${bgzip} 1> ${popName}_annotated_repMasked_q${q}_s_fi_maf05_oh06.vcf.gz
+    ${popName}${ext}_q${q}.vcf.gz | ${bgzip} 1> ${popName}${ext}_repMasked_q${q}_s_fi_maf05_oh06.vcf.gz
 
-    java -Xmx3g -jar ${NGSEP} SummaryStats -m 1 ${popName}_annotated_repMasked_q${q}_s_fi_maf05_oh06.vcf.gz \
-    > ${popName}_annotated_repMasked_q${q}_s_fi_maf05_oh06_summary.stats
+    java -Xmx3g -jar ${NGSEP} SummaryStats -m 1 ${popName}${ext}_repMasked_q${q}_s_fi_maf05_oh06.vcf.gz \
+    > ${popName}${ext}_repMasked_q${q}_s_fi_maf05_oh06_summary.stats
 
     ################
-    test ! -s ${popName}_annotated_repMasked_q${q}_s_fi_maf05_oh06_summary.stats \
-    && echo 'Error: FilterVCF for '${popName}'_annotated_q'${q}'_s_fi_maf05_oh06.vcf.gz failed at some point !!' \
+    test ! -s ${popName}${ext}_repMasked_q${q}_s_fi_maf05_oh06_summary.stats \
+    && echo 'Error: FilterVCF for '${popName}${ext}'_q'${q}'_s_fi_maf05_oh06.vcf.gz failed at some point !!' \
     && exit 1
     ################
 
-    # ${bgzip} ${popName}_annotated_repMasked_q${q}_s_fi_maf05_oh06.vcf
-    ${tabix} -p vcf ${popName}_annotated_repMasked_q${q}_s_fi_maf05_oh06.vcf.gz
+    ${tabix} -p vcf ${popName}${ext}_repMasked_q${q}_s_fi_maf05_oh06.vcf.gz
 
   ) &
 
