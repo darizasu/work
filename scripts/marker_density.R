@@ -1,5 +1,5 @@
 
-marker_density <- function(markers, bin = 2.5e5, chromID = 'X.CHROM', posID = 'POS',
+marker_density <- function(markers, bin = 2.5e5, chromID = 'Chromosome', posID = 'Position',
                            colorsRange = c('white','black'), chromLabs = NULL, 
                            pero_centro = NULL, plot_centro = F){
   
@@ -21,33 +21,19 @@ marker_density <- function(markers, bin = 2.5e5, chromID = 'X.CHROM', posID = 'P
   # Authors: darizasu
   #  Last update: October 31, 2018
 
-  read_the_table <- function(ext, ...){
-    if (ext == 'csv') return(read.csv(...)) else return(read.table(...))
-  }
+  markers = markers[,c(chromID,posID)]
 
-  if (tools::file_ext(markers) == 'gz') extCheck = tools::file_path_sans_ext(markers) else extCheck = markers
-
-  if (tools::file_ext(extCheck) == 'csv') extCheck = 'csv' else extCheck = 'table'
-
-  initial = read_the_table(ext = extCheck, file = markers, nrows = 10, comment.char = '#', header = T)
-  classes = sapply(initial, class)
-  index = grep( paste( c(chromID,posID), collapse = '|'), names(markers) )
-
-  classes[-index] = "NULL"
-
-  markers = read_the_table(ext = extCheck, file = markers, colClasses = classes, comment.char = '#', header = T)
-
-  chroms <- unique(markers[,chromID])
-  nchroms <- length(chroms)
+  chroms = sort( unique(markers[,chromID]) )
+  nchroms = length(chroms)
 
   dens_matrix = matrix(nrow = 0, ncol = nchroms)
   cols_matrix = matrix(nrow = 0, ncol = nchroms)
   
   mxLen = c()
 
-  for (i in chroms){
+  for (i in seq_along(chroms)){
 
-    Cmarkers = markers[ markers[,chromID] == i , posID ]
+    Cmarkers = markers[ markers[,chromID] == chroms[i] , posID ]
     mxLen = c(mxLen, max(Cmarkers))
     mx = ceiling( max(Cmarkers) / 1e6 ) * 1e6
     Cmarkers = cut( Cmarkers, b = seq(1, mx, bin), include.lowest = T)
@@ -60,7 +46,6 @@ marker_density <- function(markers, bin = 2.5e5, chromID = 'X.CHROM', posID = 'P
 
       dens_matrix = rbind( dens_matrix, rep(0, nchroms) )
       dens_matrix[ nrow(dens_matrix), i ] = bin
-
     }
   }
 
@@ -73,7 +58,7 @@ marker_density <- function(markers, bin = 2.5e5, chromID = 'X.CHROM', posID = 'P
   yTicks = seq(0, ylim, 1e7)
   yLabs  = paste(yTicks / 1e6, "Mb")
   
-  if(is.null(chromLabs)) chromLabs = 1:nchroms
+  if(is.null(chromLabs)) chromLabs = chroms
   
 
   par(mar=c(0.5, 5, 2, 1), fig = c(0,1,0,1))
@@ -86,11 +71,11 @@ marker_density <- function(markers, bin = 2.5e5, chromID = 'X.CHROM', posID = 'P
 
   axis(2, at = yTicks, labels = yLabs, las=2, cex.axis=0.75)
   
-  xSegm = c(rbind(seq(3,33,3) - 1, seq(3,33,3)))
+  xSegm = c(rbind(seq(3, nchroms * 3, 3) - 1, seq(3, nchroms * 33, 3)))
   ySegm = c(rbind(mxLen,mxLen))
   segments(x0 = xSegm, y0 = 0, x1 = xSegm, y1 = ySegm)
   
-  xSegm = c(rbind(seq(3,33,3),seq(3,33,3)))
+  xSegm = c(rbind(seq(3, nchroms * 3, 3), seq(3, nchroms * 3, 3)))
   ySegm = c(rbind(rep(0, nchroms), mxLen))
   segments(x0 = xSegm - 1, y0 = ySegm, x1 = xSegm, y1 = ySegm)
   
@@ -133,9 +118,12 @@ marker_density <- function(markers, bin = 2.5e5, chromID = 'X.CHROM', posID = 'P
         ylim = c(0,1), axes = F, xlab = "",
         col = colfunc( max(ncols + 1)))
 
-  axis(1, at = c(1,length(ncols)), labels = c(0,length(ncols)), tick = T, cex.axis=0.6)
+  axis(1, at = c(1,length(ncols)), labels = c(0,max(ncols)), tick = T, cex.axis=0.6)
   
 }
+
+
+# Usage -------------------------------------------------------------------
 
 # png('introgressions_all.png', width = 8, height = 6, units = 'in', res = 300)
 # 
