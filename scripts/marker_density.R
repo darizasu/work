@@ -81,32 +81,27 @@ marker_density <- function(markers, bin = 2.5e5, chromID = 'Chromosome', posID =
   
   if(!is.null(pero_centro)){
 
-    if (tools::file_ext(pero_centro) == 'gz') extCheck = tools::file_path_sans_ext(pero_centro) else extCheck = pero_centro
-    if (tools::file_ext(extCheck) == 'csv') extCheck = 'csv' else extCheck = 'table'
-
-    segTable = read_the_table(ext = extCheck, file = pero_centro, comment.char = '#', header = T)
+    pericent = c('pStart','pEnd') %in% colnames(pero_centro)
     
-    pericent = c('pStart','pEnd') %in% colnames(segTable)
-    
-    if(sum(pericent)){
+    if(sum(pericent) == 2){
       
-      ySegm = c(rbind(segTable$pStart, segTable$pEnd))
+      ySegm = c(rbind(pero_centro$pStart, pero_centro$pEnd))
       segments(x0 = xSegm - 1, y0 = ySegm, x1 = xSegm, y1 = ySegm)
       
     } else warning("The pero_centro table does not contain the columns 'pStart' or 'pEnd'")
     
-    cent = c('cStart','cEnd') %in% colnames(segTable)
+    cent = c('cStart','cEnd') %in% colnames(pero_centro)
     
     if(sum(cent) * plot_centro){
       
-      ySegm = c(rbind(segTable$cStart, segTable$cEnd))
+      ySegm = c(rbind(pero_centro$cStart, pero_centro$cEnd))
       
       segments(x0 = xSegm - 1, y0 = ySegm, x1 = xSegm,
                y1 = c(rbind(ySegm[c(F,T)],ySegm[c(T,F)])))
       
       xSegm = c(rbind(seq(3,33,3) - 1, seq(3,33,3)))
-      cStart = c(rbind(segTable$cStart,segTable$cStart)) + 3e5
-      cEnd = c(rbind(segTable$cEnd,segTable$cEnd)) - 3e5
+      cStart = c(rbind(pero_centro$cStart,pero_centro$cStart)) + 3e5
+      cEnd = c(rbind(pero_centro$cEnd,pero_centro$cEnd)) - 3e5
       segments(x0 = xSegm, y0 = cStart, x1 = xSegm, y1 = cEnd, col = 'white')
       
     } else message("The centromeres will not be drawn")
