@@ -3,23 +3,22 @@ marker_density <- function(markers, bin = 2.5e5, chromID = 'Chromosome', posID =
                            colorsRange = c('white','black'), chromLabs = NULL, 
                            pero_centro = NULL, plot_centro = F){
   
-  # Object : Plot the density of markers from a genotypic matrix
-  # Input  : markers . A table (may be gzip compressed) separated by tabs or commas.
-  #                    This table contains the location of each marker in 
-  #                    separate 'chromosome' and 'position' columns.
-  # Input  : bin . Integer. Size of the color boxes in the plot in base-pairs.
-  # Input  : chromID . Character. Name of the column in 'markers' with the chromosome info.
-  # Input  : posID . Character. Name of the column in 'markers' with the position info.
-  # Input  : colorsRange . Colors to interpolate; must be a valid argument to col2rgb()
-  # Input  : chromLabs . Character vector with the labels to be used for the chromosomes.
-  # Input  : pero_centro . A table separated by tabs or commas. It contains the coordinates 
-  #                        for centromeric and pericentromeric regions in the genome.
-  #                        It contains the columns 'pStart' and 'pEnd' for pericentromeres and/or
-  #                        'cStart' and 'cEnd' for centromeres
-  # Input  : plot_centro . Logical. Should the centromeric regions be drawn ?
-  # Output : barplot object with the density of markers for each chromosome
-  # Authors: darizasu
-  #  Last update: October 31, 2018
+  #   Purpose   : Plot the density of markers from a genotypic matrix
+  #   Input     : markers . A data.frame containing the location of each marker in 
+  #                         separate 'chromosome' and 'position' columns.
+  #   Input     : chromID . Character. Name of the column in 'markers' with the chromosome info.
+  #   Input     : posID . Character. Name of the column in 'markers' with the position info.
+  #   Input     : bin . Integer. Size (bp) of the color boxes in the plot in base-pairs.
+  #   Input     : colorsRange . Colors to interpolate; must be a valid argument to col2rgb()
+  #   Input     : chromLabs . Character vector with the labels to be used for the chromosomes.
+  #   Input     : pero_centro . A table separated by tabs or commas. It contains the coordinates 
+  #                             for centromeric and pericentromeric regions in the genome.
+  #                             It contains the columns 'pStart' and 'pEnd' for pericentromeres and/or
+  #                             'cStart' and 'cEnd' for centromeres
+  #   Input     : plot_centro . Logical. Should the centromeric regions be drawn ?
+  #   Output    : barplot object with the density of markers for each chromosome
+  #   Authors   : darizasu
+  #    Last update: April 9, 2019
 
   markers = markers[,c(chromID,posID)]
 
