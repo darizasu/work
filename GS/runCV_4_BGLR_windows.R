@@ -70,11 +70,24 @@ if (any(validPop > 100 | validPop <= 0)){
   
 }
 
-samp = read.delim(samp, header = F)[,1]
+samp = read.delim(samp, header = F, stringsAsFactors = F)[,1]
 geno = read.table(geno, row.names = as.character(samp), header = F)
-phen = read.delim(phen, row.names = 1)
+phen = read.delim(phen, row.names = 1, check.names = F)
 
-phen2 = if (!is.na(phen2)) read.delim(phen2, row.names = 1) else NA
+phen2 = if (!is.na(phen2)) read.delim(phen2, row.names = 1, check.names = F) else NA
+
+if (is.na(Gmatrix)){
+  
+  cat("\nUsing the function 'A.mat' from the package 'rrBLUP' to calculate the kinship matrix.\n\n")
+  source('https://raw.githubusercontent.com/cran/rrBLUP/master/R/A.mat.R')
+  G = A.mat(geno)
+  
+} else {
+  
+  cat("\nUsing the file ", Gmatrix," as the kinship matrix for the population.\n\n")
+  G = read.delim(Gmatrix, row.names = 1, header = F)
+  colnames(G) = rownames(G)
+}
 
 if (!is.na(rand_SNPs)){
   
@@ -175,7 +188,7 @@ for (i in 1:rand_pars){
                                   pop.split = combinat[,i],
                                   model = prior,
                                   myNames = myNames,
-                                  G = Gmatrix
+                                  G = G[myNames,myNames]
                                   )$cor,
                           digits = 5)
           cat(prior,"\t",trait,"\tpop",i,"\t",myCorr,"\t",paste(Sys.time(),'\n'), sep = '')
@@ -200,7 +213,7 @@ for (i in 1:rand_pars){
                                   yBP = phen2,
                                   model = prior,
                                   myNames = myNames,
-                                  G = Gmatrix
+                                  G = G[myNames,myNames]
                                   )$cor,
                           digits = 5)
           cat(prior,"\t",trait,"\tpop",i,"\t",myCorr,"\t",paste(Sys.time(),'\n'), sep = '')

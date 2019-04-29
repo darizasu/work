@@ -41,11 +41,6 @@ runBGLR <- function(y, trait, X, pop.split, yBP, model, G, saveAt = paste(outDir
     
   } else if (model=="BLassof") {
     
-    # Z = scale(X[myNames,])
-    # G = tcrossprod(Z) / ncol(Z)
-    G = read.delim(G, row.names = 1, header = F)
-    colnames(G) = rownames(G)
-    G = as.matrix(G[myNames,myNames])
     L = svd(G)
     Lm = L$u %*% diag(L$d)^(1/2)
     ETA = list(list(model="BL",     X=Lm))
@@ -60,11 +55,6 @@ runBGLR <- function(y, trait, X, pop.split, yBP, model, G, saveAt = paste(outDir
     
   } else if (model=="GBLUP") {
     
-    # Z = scale(X[myNames,])
-    # G = tcrossprod(Z) / ncol(Z)
-    G = read.delim(G, row.names = 1, header = F)
-    colnames(G) = rownames(G)
-    G = as.matrix(G[myNames,myNames])
     ETA = list(list(model="RKHS",   K=G))
     
   } else {
