@@ -1,6 +1,6 @@
 
 
-TP_BP_partition = function (myPhen,myGen,traits,myPhen2){
+TP_BP_partition = function (myPhen,myGen,traits,myPhen2, predNewLines){
   
   # Object . A function that returns the genotype IDs that have phenotypic and 
   #          genotypic information for each requested trait. Based on this information,
@@ -23,6 +23,8 @@ TP_BP_partition = function (myPhen,myGen,traits,myPhen2){
   if (is.data.frame(myPhen2)) traits = traits[traits %in% names(myPhen2)]
   
   subtitle = 1
+
+  message('Creating the population partition matrices and subsetting genotypes with phenotypic and genotypic data available.','\n')
   
   for (trait in traits){
    
@@ -40,13 +42,15 @@ TP_BP_partition = function (myPhen,myGen,traits,myPhen2){
       
       all_phen_list2 = rownames(myPhen2)[! is.na(myPhen2[,trait])]
       
-      all_phen_gen2 = intersect(as.character(samp), all_phen_list2)
+      all_phen_gen2 = intersect(as.character(myGen), all_phen_list2)
       
-      namesList[[trait]]$all_phen_gen2 = all_phen_gen2
+      namesList[[trait]]$all_phen_gen2 = all_phen_gen2 # all_phen_gen2 contains all lines with geno and pheno data in the Validation population (including those that are not present in the Training population)
       
       # Get the list of samples with pheno & geno data from both datasets
       
       all_phen_gen = intersect(all_phen_gen, all_phen_gen2)
+
+      if (! predNewLines) namesList[[trait]]$all_phen_gen2 = all_phen_gen
 
       namesList[[trait]]$all_phen_gen = sort(all_phen_gen)
       
@@ -55,17 +59,17 @@ TP_BP_partition = function (myPhen,myGen,traits,myPhen2){
       namesList[[trait]]$len = c('apg1' = length(all_phen_gen),
                                  'apg2' = length(all_phen_gen2) - length(all_phen_gen))
       
-      if(subtitle) cat('Trait  =  TP-len\tVP-len\n') ; subtitle = 0
+      if(subtitle) message('  ├─\tTrait\t=\tTP-length\tVP-length\n') ; subtitle = 0
       
-      cat(trait,'  =  ',length(all_phen_gen),'\t',length(all_phen_gen2) - length(all_phen_gen),'\n')
+      message(' ├─ ', trait,'\t=\t',length(all_phen_gen),'\t',length(all_phen_gen2) - length(all_phen_gen))
       
     } else {
       
       # Get the total size of population
       
-      if(subtitle) cat('Trait  =  Lines\n') ; subtitle = 0
+      if(subtitle) message('  ├─\tTrait\t=\tLines\n') ; subtitle = 0
       
-      cat(trait,'  =  ',length(all_phen_gen),'\n')
+      message(' ├─ ', trait,'\t=\t',length(all_phen_gen))
       namesList[[trait]]$len = c('apg1' = length(all_phen_gen))
       
     }
