@@ -59,8 +59,7 @@ runBGLR <- function(y, trait, X, pop.split, yBP, model, G, saveAt = paste(outDir
     
   } else {
     
-    cat("ERROR: model",model,"is not available. Continuing...\n")
-    return(list( result=NA, cor=NA))
+    stop("Model",model,"is not available.")
   }
   
   # Phenotypes from the Validation population are set to NA
@@ -68,7 +67,7 @@ runBGLR <- function(y, trait, X, pop.split, yBP, model, G, saveAt = paste(outDir
   yNA = y[myNames,trait]
   iNA = which(pop.split == 1)
   yNA[iNA] = NA
-  iNA = is.na(yNA) # Those lines that were not phenotyped in the 1st dataset will be predicted as well.
+  iNA = is.na(yNA) # Those lines that were not present in the Training population will be predicted as well.
   
   fm = BGLR( y=yNA, ETA=ETA, 
              nIter=10000, burnIn=1000, thin=5, 
