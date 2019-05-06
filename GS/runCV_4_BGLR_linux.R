@@ -1,17 +1,20 @@
 #!/home/dariza/bin/Rscript
-
 rm(list=ls())
 
-list.of.packages = c("argparse","BGLR")
-new.pckgs = list.of.packages[!(list.of.packages %in% rownames(installed.packages()))]
 
-if (length(new.pckgs)){
-  cat("\nWarning message:\nThis script will try to install the packages",new.pckgs,"and all its dependencies. Otherwise abort this execution\n")
+LoP = c("argparse","BGLR")
+
+new.pckgs = sapply(LoP, require, character.only = TRUE)
+
+if (sum(!new.pckgs)){
+  warning("This script will try to install the packages - ",
+          toString(new.pckgs),
+          " - and all its dependencies. Otherwise abort this execution",
+          immediate. = TRUE)
   Sys.sleep(10)
-  install.packages(pkgs=new.pckgs, repos="http://cran.r-project.org", dependencies = T)
+  install.packages(pkgs=new.pckgs, 
+                   repos="http://cran.r-project.org", dependencies = T)
 }
-
-library(argparse)
 
 parser = ArgumentParser()
 
@@ -31,7 +34,7 @@ parser$add_argument("-G", metavar='file', default='NA',
                     help = "Kinship matrix. First row and first column are the sample names.")
 parser$add_argument("-f", metavar='integer', default='30',
                     help = "Percentage of the total population to be used as validation population. This value must be between 0 - 100. [Default %(default)s]")
-parser$add_argument("-i", metavar='integer', default='100',
+parser$add_argument("-I", metavar='integer', default='100',
                     help = "Number of random partition populations to be used for prediction ability assessment. Any positive integer is accepted. Proceed with caution here, the more populations the longer it takes to complete the whole analysis. [Default %(default)s]")
 parser$add_argument("-n", metavar='.RData', default='NA',
                     help = "NOT REQUIRED. Saved workspace with population partition matrices and genotype names. This file can be retrieved from a previous run of this script. Default behavior is to create a new file.")
@@ -39,13 +42,16 @@ parser$add_argument("-c", "--combine", action="store_true", default=FALSE,
                     help="Find traits with exactly the same set of genotypes and assign them a common random population partition for cross validation. [Default %(default)s]")
 parser$add_argument("-r", metavar='integer', default='NA',
                     help = "NOT REQUIRED. Keep these many randomly selected SNPs from the original matrix, the others will be filtered out. The final genotype matrix will be saved in the output directory. Default behavior is to use all available SNPs.")
+parser$add_argument("-i", "--include", action="store_true", default=FALSE,
+                    help="Inlcude lines that were not present in the Training population in the prediction. Only valuable when two phenotype files are provided with the '-p' option. This option could alter the TP - VP partitions, since more lines are predicted in the validation population. [Default %(default)s]")
 
 args = parser$parse_args()
 
 if (any(sapply(args, is.null))){
   
   # Display the help message and exit
-  system( paste( paste(commandArgs()[1:4], collapse = " "), '--args --help', collapse = "" ) )
+  system( paste( paste(commandArgs()[1:4], collapse = " "), 
+                 '--args --help', collapse = "" ) )
   stop('One or more arguments are not valid. Check usage for more details.')
   
 }
@@ -55,24 +61,23 @@ ca = sapply( split( ca[6:length(ca)],
                     ceiling( seq_along(ca[6:length(ca)]) / 2) ),
              paste, collapse = " " )
 
-cat('\nCommand line arguments:\n',
-    paste0( c(commandArgs()[1:5], ca), collapse = "\n   "),'\n\n')
+message('\nCommand line arguments:\n',
+        paste0( c(commandArgs()[1:5], ca), collapse = "\n   "),'\n\n')
 
-library(BGLR)
-
-model      = unlist(strsplit(args$m,','))
-traits     = unlist(strsplit(args$t,','))
-phen       = unlist(strsplit(args$p,','))[1]
-phen2      = unlist(strsplit(args$p,','))[2]
-outDir     = args$o
-samp       = args$s
-geno       = args$g
-Gmatrix    = args$G
-names_list = args$n
-common     = args$combine
-rand_SNPs  = args$r
-validPop   = as.integer(args$f)
-rand_pars  = as.integer(args$i)
+model        = unlist(strsplit(args$m,','))
+traits       = unlist(strsplit(args$t,','))
+phen         = unlist(strsplit(args$p,','))[1]
+phen2        = unlist(strsplit(args$p,','))[2]
+outDir       = args$o
+samp         = args$s
+geno         = args$g
+Gmatrix      = args$G
+names_list   = args$n
+common       = args$combine
+rand_SNPs    = args$r
+validPop     = as.integer(args$f)
+rand_pars    = as.integer(args$I)
+pnl          = args$i
 
 if (any(validPop > 100 | validPop <= 0)){
   
@@ -91,29 +96,32 @@ phen = read.delim(phen, row.names = 1, check.names = F)
 phen2 = if (!is.na(phen2)) read.delim(phen2, row.names = 1, check.names = F) else NA
 
 if (Gmatrix == 'NA'){
-  
-  cat("\nUsing the function 'A.mat' from the package 'rrBLUP' to calculate the kinship matrix.\n\n")
+
+  warning("Using the function 'A.mat' from the package 'rrBLUP' to calculate the kinship matrix.\n")
   source('https://raw.githubusercontent.com/cran/rrBLUP/master/R/A.mat.R')
   G = A.mat(geno)
-  
+
 } else {
-  
-  cat("\nUsing the file ", Gmatrix," as the kinship matrix for the population.\n\n")
+
+  message("Using the file ", Gmatrix," as the kinship matrix for the population.\n")
   G = read.delim(Gmatrix, row.names = 1, header = F)
   colnames(G) = rownames(G)
 }
 
 if (rand_SNPs != 'NA'){
   
-  if (ncol(geno) < as.integer(rand_SNPs)) stop('The number of SNPs to select is higher than the actual number of SNPs available')
+  if (ncol(geno) < as.integer(rand_SNPs)){
+    stop('The number of SNPs to select is higher than the actual number of SNPs available')
+  }
   
   geno = geno[,sample(1:ncol(geno), as.integer(rand_SNPs))]
   
-  write.table(geno, paste(outDir,'/Geno_matrix_',rand_SNPs,'SNPs_rrBLUP.in',sep=''),sep = ' ',
-              col.names=F, quote=F, row.names=F)
+  write.table(geno, paste0(outDir,'/Geno_matrix_',rand_SNPs,'SNPs_rrBLUP.in'),
+              sep = ' ', col.names = F, quote = F, row.names = F)
   
-  cat(rand_SNPs," SNPs have been selected from the original genotype matrix. The selected SNPs were saved at ",
-      paste(outDir,'/Geno_matrix_',rand_SNPs,'SNPs_rrBLUP.in',sep=''),'\n\n')
+  message(rand_SNPs," SNPs have been selected from the original genotype matrix.",
+          " The selected SNPs were saved at ",
+          paste0(outDir,'/Geno_matrix_',rand_SNPs,'SNPs_rrBLUP.in'),'\n')
   
 }
 
@@ -122,7 +130,7 @@ source("https://raw.githubusercontent.com/darizasu/work/master/GS/runBGLR.R")
 
 if (names_list == 'NA'){
   
-  names_list = TP_BP_partition(phen,samp,traits,phen2)
+  names_list = TP_BP_partition(phen,samp,traits,phen2,pnl         )
   
   if (common){
     
@@ -131,51 +139,53 @@ if (names_list == 'NA'){
     
     pops_n = sapply(unique_pops, function(x) which( sapply(rand_pops, identical, x) ))
     
+    message('\n\nA common population partition matrix will be assigned to traits with exactly the same set of genotypes:\n')
+
     for (i in 1:length(pops_n)){
       
       first = names_list[[ pops_n[[i]][1] ]]$combinat
       
+      ids = names(pops_n[[i]])
+      message(paste0(' ├─ ', ids, coll = '\n'))
+      
       for (j in pops_n[[i]]){
         
         names_list[[j]]$combinat = first
-        
       }
     }
-    
-    cat('\nA common population partition matrix was assigned to traits with exactly the same set of genotypes:\n')
-    print(lapply(pops_n, names), end='\n\n')
   }
   
-  save(names_list, file = paste(outDir,'/names_list.RData',sep=''))
-  cat('The population partition matrices and genotype names have been saved at:',
-      paste(outDir,'/names_list.RData',sep=''),'\n\n')
+  save(names_list, file = paste0(outDir,'/names_list.RData'))
+  message('The population partition matrices and genotype names have been saved at:',
+          paste0(outDir,'/names_list.RData'),'\n')
   
 } else {
   
   namesListFile = names_list # The string containing the location of the .Rdata file is saved in namesListFile
-  cat('Loading population partition matrices and genotype names from:',names_list,'\n\n')
+  message('Loading population partition matrices and genotype names from:',names_list,'\n')
   load(names_list) # The 'name_list' object is no longer a string with the location of the .Rdata file, instead is the list that was contained in the file.
   
   for (trait in names(names_list)){
     
     if (ncol(names_list[[trait]]$combinat) < rand_pars){
-      stop(paste('There are only',ncol(names_list[[trait]]$combinat),'population partitions available at',namesListFile,'for the trait',trait,'and you requested',rand_pars, "partitions with '-i' option."))
+      stop(paste('There are only',ncol(names_list[[trait]]$combinat),
+                 'population partitions available at',namesListFile,
+                 'for the trait',trait,'and you requested',rand_pars,
+                 "partitions with '-i' option."))
     }
     
     if (is.data.frame(phen2)){
       
-      cat('Trait\tTP-len\tVP-len\n')
-      cat(trait,'\t',names_list[[trait]]$len['apg1'],'\t',names_list[[trait]]$len['apg2'],'\n\n')
+      message('  ├─\tTrait\t=\tTP-length\tVP-length\n')
+      message(' ├─ ',trait,'\t=\t',names_list[[trait]]$len['apg1'],'\t=\t',
+              names_list[[trait]]$len['apg2'],'\n')
       
     } else {
       
-      cat('Trait\tLines\n')
-      cat(trait,'\t',names_list[[trait]]$len['apg1'],'\n\n')
-      
+      message('  ├─\tTrait\t=\tLines\n')
+      message(' ├─ ',trait,'\t=\t',names_list[[trait]]$len['apg1'],'\n')
     }
-    
   }
-  
 }
 
 cat('model\ttrait\trandomPop\tcorr\tfinishedAt\n')
@@ -189,7 +199,7 @@ for (i in 1:rand_pars){
       set.seed(1234)
       combinat = names_list[[trait]]$combinat
       
-      if (is.na(phen2)){
+      if (! is.data.frame(phen2)){
         
         if (trait %in% names(phen)){
           
@@ -202,9 +212,9 @@ for (i in 1:rand_pars){
                                   model = prior,
                                   myNames = myNames,
                                   G = G[myNames,myNames]
-          )$cor,
-          digits = 5)
-          cat(prior,"\t",trait,"\tpop",i,"\t",myCorr,"\t",paste(Sys.time(),'\n'), sep = '')
+                                  )$cor,
+                          digits = 5)
+          cat(prior, trait, paste0('pop',i), myCorr, paste0(Sys.time(),'\n'))
         }
         
       } else {
@@ -223,9 +233,9 @@ for (i in 1:rand_pars){
                                   model = prior,
                                   myNames = myNames,
                                   G = G[myNames,myNames]
-          )$cor,
-          digits = 5)
-          cat(prior,"\t",trait,"\tpop",i,"\t",myCorr,"\t",paste(Sys.time(),'\n'), sep = '')
+                                  )$cor,
+                          digits = 5)
+          cat(prior, trait, paste0('pop',i), myCorr, paste0(Sys.time(),'\n'))
         }
       }
     }
