@@ -4,7 +4,7 @@ rm(list=ls())
 
 LoP = c("argparse","BGLR")
 
-new.pckgs = sapply(LoP, require, character.only = TRUE)
+new.pckgs = suppressMessages( sapply(LoP, require, character.only = TRUE) )
 
 if (sum(!new.pckgs)){
   warning("This script will try to install the packages - ",

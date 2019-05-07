@@ -50,18 +50,24 @@ TP_BP_partition = function (myPhen,myGen,traits,myPhen2, predNewLines){
       
       all_phen_gen = intersect(all_phen_gen, all_phen_gen2)
 
-      if (! predNewLines) namesList[[trait]]$all_phen_gen2 = all_phen_gen
-
       namesList[[trait]]$all_phen_gen = sort(all_phen_gen)
-      
+
+      if (! predNewLines){
+
+        # all_phen_gen2 still contains lines with geno and phen data for myPhen2, but namesList[[trait]]$all_phen_gen2 will not.
+        namesList[[trait]]$all_phen_gen2 = all_phen_gen
+      }
+  
       # Get the size for training and validation populations
       
-      namesList[[trait]]$len = c('apg1' = length(all_phen_gen),
-                                 'apg2' = length(all_phen_gen2) - length(all_phen_gen))
+      namesList[[trait]]$len = c('apg1' = length(all_phen_gen), # How many lines have geno and phen data for both datasets
+                                 'apg2' = length(all_phen_gen2) - length(all_phen_gen)) # How many lines have geno and phen data and are unique for myPhen2
       
       if(subtitle) message('  ├─\tTrait\t=\tTP-length\tVP-length\n') ; subtitle = 0
       
-      message(' ├─ ', trait,'\t=\t',length(all_phen_gen),'\t',length(all_phen_gen2) - length(all_phen_gen))
+      message(' ├─ ', trait,'\t=\t',
+              round(length(all_phen_gen) * 0.7),'\t',
+              round(length(all_phen_gen) * 0.3) + length(namesList[[trait]]$all_phen_gen2) - length(all_phen_gen))
       
     } else {
       
