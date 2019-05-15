@@ -2,13 +2,13 @@ rm(list=ls())
 
 # model  = Priors to be tested in a vector of characters. Available options are BayesA,BayesB,BayesC,BayesRR,BLasso,FIXED,BLassof,RKHS,GBLUP
 # model  = c('BayesA','BayesB','BayesC','BayesRR','BLasso','FIXED','BLassof','RKHS','GBLUP')
-model  = c('RKHS','GBLUP')
+model  = c('RKHS')
 
 # traits = Traits to run genomic prediction, in a vector of characters. The names must be the same than the ones in the following 'phen' file.
-traits = c('wholepop_DF','Fe','Zn','SdWt','subsamp_DF','wac','p80CKT','p50CKT','p92CKT','p100CKT','POM','TSW','100SW','YdPl_ha2','subsamp_POM','subsamp_TSW','subsamp_100SW','subsamp_YdPl_ha2','raw_p80CKT')
+traits = c('Model1_P80_raw','Model2_P80_Grubbs','Model3_Pins_Out','Model4_Pins_SinOut')
 
 # phen   = File with phenotypic data. First column is for genotype names. Then, one column per trait
-phen   = 'GS_7.txt'
+phen   = 'BLUPs_GP_MGC.txt'
 
 # phen2  = NOT REQUIRED. File with phenotypic data from a different year, to carry out year to year prediction.
 phen2  = NA
@@ -17,21 +17,21 @@ phen2  = NA
 outDir = getwd()
 
 # samp = File with the list of genotype names present in the genotypic matrix. One per line.
-samp = 'MII_repMasked_q40_s_fi_maf05_oh06_i130_noScaffolds_imputed_rrBLUP_samples.txt'
+samp = 'MGC_annotated_repMasked_q40_s_fi_oh06_i260_maf0.05_imputed_rrBLUP_samples.txt'
 
 # geno = A matrix with genotypic data coded as (-1,0,1) or (0,1,2) for homozygous reference allele, heterozygous, and homozygous alternative allele.
 # One column per marker and one row per genotype. No headers. The order of genotypes is the same order than that of the previous 'samp' file
-geno = 'MII_repMasked_q40_s_fi_maf05_oh06_i130_noScaffolds_imputed_rrBLUP.in'
+geno = 'MGC_annotated_repMasked_q40_s_fi_oh06_i260_maf0.05_imputed_rrBLUP.in'
 
 # Gmatrix = Kinship matrix. No headers. First column is for the genotype names
-Gmatrix = 'MII_repMasked_q40_s_fi_maf05_oh06_i130_noScaffolds_kinship.txt'
+Gmatrix = NA
 
 # validPop = Percentage of the total population to be used as validation population. This value must be between 0 - 100.
 validPop = 30
 
 # rand_pars = Number of random partition populations to be used for prediction ability assessment. Any positive integer is accepted.
 # Proceed with caution here, the more populations the longer it takes to complete the whole analysis.
-rand_pars = 50
+rand_pars = 2
 
 # names_list = NOT REQUIRED. Saved workspace with population partition matrices and genotype names. 
 # This file can be retrieved from a previous run of this script. Default behavior is to create a new file.
@@ -43,6 +43,11 @@ common = TRUE
 # rand_SNPs = NOT REQUIRED. Keep these many randomly selected SNPs from the original matrix, the others will be filtered out.
 # The final genotype matrix will be saved in the output directory. Default behavior is to use all available SNPs.
 rand_SNPs = NA
+
+# Inlcude lines that were not present in the Training population in the prediction.
+# Only valuable when two phenotype files are provided with the '-p' option.
+# This option could alter the TP - VP partitions, since more lines are predicted in the validation population.
+pnl = FALSE
 
 
 #### ---------------------------------------------------------------------- ####
@@ -104,7 +109,7 @@ source("https://raw.githubusercontent.com/darizasu/work/master/GS/runBGLR.R")
 
 if (is.na(names_list)){
   
-  names_list = TP_BP_partition(phen,samp,traits,phen2)
+  names_list = TP_BP_partition(phen,samp,traits,phen2,pnl)
   
   if (common){
     
@@ -189,8 +194,8 @@ for (i in 1:rand_pars){
                                   model = prior,
                                   myNames = myNames,
                                   G = G[myNames,myNames]
-                                  )$cor,
-                          digits = 5)
+          )$cor,
+          digits = 5)
           cat(prior,"\t",trait,"\tpop",i,"\t",myCorr,"\t",paste(Sys.time(),'\n'), sep = '')
           tmp_DF = data.frame(prior,trait,pop,myCorr,Sys.time())
           names(tmp_DF) = names(predResults)
@@ -214,8 +219,8 @@ for (i in 1:rand_pars){
                                   model = prior,
                                   myNames = myNames,
                                   G = G[myNames,myNames]
-                                  )$cor,
-                          digits = 5)
+          )$cor,
+          digits = 5)
           cat(prior,"\t",trait,"\tpop",i,"\t",myCorr,"\t",paste(Sys.time(),'\n'), sep = '')
           tmp_DF = data.frame(prior,trait,pop,myCorr,Sys.time())
           names(tmp_DF) = names(predResults)
