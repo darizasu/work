@@ -1,6 +1,6 @@
 
 
-TP_BP_partition = function (myPhen,myGen,traits,myPhen2, predNewLines){
+TP_BP_partition = function (myPhen,myGen,traits,myPhen2,validation,predNewLines){
   
   # Object . A function that returns the genotype IDs that have phenotypic and 
   #          genotypic information for each requested trait. Based on this information,
@@ -66,8 +66,8 @@ TP_BP_partition = function (myPhen,myGen,traits,myPhen2, predNewLines){
       if(subtitle) message('  ├─\tTrait\t=\tTP-length\tVP-length\n') ; subtitle = 0
       
       message(' ├─ ', trait,'\t=\t',
-              round(length(all_phen_gen) * 0.7),'\t',
-              round(length(all_phen_gen) * 0.3) + length(namesList[[trait]]$all_phen_gen2) - length(all_phen_gen))
+              round(length(all_phen_gen) * (1 - validation)),'\t',
+              round(length(all_phen_gen) * validation) + length(namesList[[trait]]$all_phen_gen2) - length(all_phen_gen))
       
     } else {
       
@@ -84,7 +84,7 @@ TP_BP_partition = function (myPhen,myGen,traits,myPhen2, predNewLines){
     
     for( i in 1:rand_pars ){
       # 0 = train ; 1 = test
-      namesList[[trait]]$combinat[ sample( 1:length(all_phen_gen), length(all_phen_gen) * validPop ) , i] = 1
+      namesList[[trait]]$combinat[ sample( 1:length(all_phen_gen), length(all_phen_gen) * validation ) , i] = 1
     }
      
   }

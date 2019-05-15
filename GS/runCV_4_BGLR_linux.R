@@ -130,7 +130,7 @@ source("https://raw.githubusercontent.com/darizasu/work/master/GS/runBGLR.R")
 
 if (names_list == 'NA'){
   
-  names_list = TP_BP_partition(phen,samp,traits,phen2,pnl         )
+  names_list = TP_BP_partition(phen,samp,traits,phen2,validPop,pnl)
   
   if (common){
     
