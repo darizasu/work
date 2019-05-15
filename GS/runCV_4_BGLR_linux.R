@@ -129,8 +129,9 @@ source("https://raw.githubusercontent.com/darizasu/work/master/GS/TP_BP_partitio
 source("https://raw.githubusercontent.com/darizasu/work/master/GS/runBGLR.R")
 
 if (names_list == 'NA'){
-  
-  names_list = TP_BP_partition(phen,samp,traits,phen2,validPop,pnl)
+  ,,,,,
+  names_list = TP_BP_partition(myPhen = phen, myGen = samp, traits = traits, 
+                               myPhen2 = phen2, validation = validPop, predNewLines = pnl)
   
   if (common){
     

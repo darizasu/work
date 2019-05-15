@@ -13,7 +13,7 @@ TP_BP_partition = function (myPhen,myGen,traits,myPhen2,validation,predNewLines)
   #          Each trait is a sublist containing a vector with genotype IDs (all_phen_gen), 
   #          the length of that vector (len) and the Training and Validation partition matrices (combinat).
   # Authors: dariza and jdelahoz
-  #   Last modified: November 2, 2018
+  #   Last modified: May 15, 2018
   
   namesList = list()
   
