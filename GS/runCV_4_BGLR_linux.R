@@ -79,7 +79,7 @@ validPop     = as.integer(args$f)
 rand_pars    = as.integer(args$I)
 pnl          = args$i
 
-if (any(validPop > 100 | validPop <= 0)){
+if (any(validPop >= 100 | validPop < 0)){
   
   stop('The validation population partition should be a value between 0 - 100.')
   
@@ -129,7 +129,7 @@ source("https://raw.githubusercontent.com/darizasu/work/master/GS/TP_BP_partitio
 source("https://raw.githubusercontent.com/darizasu/work/master/GS/runBGLR.R")
 
 if (names_list == 'NA'){
-  ,,,,,
+
   names_list = TP_BP_partition(myPhen = phen, myGen = samp, traits = traits, 
                                myPhen2 = phen2, validation = validPop, predNewLines = pnl)
   
