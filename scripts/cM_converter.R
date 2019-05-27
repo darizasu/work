@@ -4,7 +4,7 @@ cM_converter <-
   
   #   Goal      : Convert physical to genetic positions (or genetic to physical positions)
   #               fitting a smooth spline with a physical-genetic map.
-  #   Input     : pred . A tab-separated file containing the chromosome and position 
+  #   Input     : pred . A data.frame containing the chromosome and position 
   #               (physical or genetic accordingly) to be converted.
   #   Input     : chrom_col . Integer indicating the column number containing the chromosome to be converted from 'pred'.
   #   Input     : pos_col . Integer indicating the column number containing the positions to be converted from 'pred'.
@@ -16,11 +16,11 @@ cM_converter <-
   #               Columns are: chromosome - empty_col - genetic_pos - physical_pos
   #   Output    : Original 'pred' data.frame with the column 'PRED' for predicted genetic positions.
   #   Authors   : japaricio and darizasu
-  #    Last update: April 9, 2019
+  #    Last update: May 27th, 2019
   
   map = read.table(map, col.names=c('CHR','na','GEN','PHY'))
   
-  pred = read.table(file=pred, header=T, check.names = FALSE)
+  # pred = read.table(file=pred, header=T, check.names = FALSE)
   
   colnames(pred)[c(chrom_col,pos_col)] = c('CHR','POS')
   
