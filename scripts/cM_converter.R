@@ -20,7 +20,7 @@ cM_converter <-
   
   map = read.table(map, col.names=c('CHR','na','GEN','PHY'))
   
-  pred = read.table(file=pred, header=T)
+  pred = read.table(file=pred, header=T, check.names = FALSE)
   
   colnames(pred)[c(chrom_col,pos_col)] = c('CHR','POS')
   
