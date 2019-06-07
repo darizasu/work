@@ -16,17 +16,16 @@ cM_converter <-
   #               Columns are: chromosome - empty_col - genetic_pos - physical_pos
   #   Output    : Original 'pred' data.frame with the column 'PRED' for predicted genetic positions.
   #   Authors   : japaricio and darizasu
-  #    Last update: May 27th, 2019
+  #    Last update: June 7th, 2019
   
   map = read.table(map, col.names=c('CHR','na','GEN','PHY'))
   
-  # pred = read.table(file=pred, header=T, check.names = FALSE)
   
   colnames(pred)[c(chrom_col,pos_col)] = c('CHR','POS')
   
   for (chr in levels(map$CHR)){
     
-    pred[pred$CHR == chr,'POS'] = sort(pred[pred$CHR == chr,'POS'])
+    # pred[pred$CHR == chr,'POS'] = sort(pred[pred$CHR == chr,'POS'])
     
     sbMap <- map[map$CHR == chr,]
     sbPred <- pred[pred$CHR == chr,]
