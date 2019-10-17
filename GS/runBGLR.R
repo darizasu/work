@@ -1,12 +1,12 @@
 
-runBGLR <- function(y, trait, X, pop.split, yBP, model, G, saveAt = paste(outDir,'/',sep=''), myNames){
+runBGLR <- function(y, trait, X, pop.split, yObs, model, G, saveAt = paste(outDir,'/',sep=''), myNames){
   
   # Object . A function that handles input objects to run BGLR
   # Input . y . Vector of values for the observed trait
   # Input . trait . 
   # Input . X . Genotypic matrix (samples x markers (-1, 0, 1))
   # Input . pop.split . Random permutations of samples
-  # Input . yBP .
+  # Input . yObs .
   # Input . model . c( "BayesA", "BayesB", "BayesC", "BayesRR", "BLasso", "BLassof", "FIXED", "RKHS", "GBLUP")
   # Input . G .
   # Input . saveAt .
@@ -67,25 +67,25 @@ runBGLR <- function(y, trait, X, pop.split, yBP, model, G, saveAt = paste(outDir
   yNA = y[myNames,trait]
   iNA = which(pop.split == 1)
   yNA[iNA] = NA
-  iNA = is.na(yNA) # Those lines that were not present in the Training population will be predicted as well.
   
   fm = BGLR( y=yNA, ETA=ETA, 
              nIter=10000, burnIn=1000, thin=5, 
              verbose=FALSE, saveAt=saveAt)
   
-  TP = fm$yHat[iNA] # Predicted phenotypes from validation population
+  Pred = fm$yHat[iNA] # Predicted phenotypes from validation population
   
-  if (missing(yBP)){
+  if (missing(yObs)){
     
-    BP = y[iNA,trait]
+    Obs = y[iNA,trait]
     
   } else {
     
-    yBP = yBP[myNames,]
-    BP = yBP[iNA,trait]
+    yObs = yObs[myNames,trait]
+    Obs = yObs[iNA]
     
   }
   
   return( list(result = fm,
-               cor    = cor(TP, BP, use="pairwise.complete.obs", method="pearson")  ) )
+               cor    = cor(Pred, Obs, use="pairwise.complete.obs", method="pearson"),
+               table  = data.frame(model = model, trait = trait, pred = Pred, obs = Obs)  ) )
 }
