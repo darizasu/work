@@ -59,10 +59,8 @@ cv4BGLR <-
     }
     
     # Import complementary functions
-    # source("https://raw.githubusercontent.com/darizasu/work/master/GS/TP_BP_partition.R")
-    # source("https://raw.githubusercontent.com/darizasu/work/master/GS/BGLRwrap.R")
-    source("D:/OneDrive - CGIAR/Daniel/GitHub/work/GS/TP_BP_partition.R")
-    source("D:/OneDrive - CGIAR/Daniel/GitHub/work/GS/BGLRwrap.R")
+    source("https://raw.githubusercontent.com/darizasu/work/master/GS/TP_BP_partition.R")
+    source("https://raw.githubusercontent.com/darizasu/work/master/GS/BGLRwrap.R")
     
     # Generate partitions Training-Validation according to the input data provided.
     if (is.na(names_list)){

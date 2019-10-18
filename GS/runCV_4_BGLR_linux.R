@@ -82,7 +82,7 @@ validPop     = as.integer(args$f)
 rand_pars    = as.integer(args$I)
 pnl          = args$i
 
-source('cv4BGLR.R')
+source('https://raw.githubusercontent.com/darizasu/work/master/GS/cv4BGLR.R')
 
 pred.results <- cv4BGLR(model = model, phen = phen, traits = traits, outDir = outDir, saveTable = saveTable,
                         geno = geno, samp = samp, Gmatrix = Gmatrix, validPop = validPop, rand_pars = rand_pars,

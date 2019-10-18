@@ -53,7 +53,7 @@ pnl <- FALSE
 # The final genotype matrix will be saved in the output directory. If NA, default behavior is to use all available SNPs.
 rand_SNPs <- NA
 
-source('D:/OneDrive - CGIAR/Daniel/GitHub/work/GS/test/cv4BGLR.R')
+source('https://raw.githubusercontent.com/darizasu/work/master/GS/cv4BGLR.R')
 
 pred.results <- cv4BGLR(model = model, phen = phen, traits = traits, outDir = outDir, saveTable = saveTable,
                         geno = geno, samp = samp, Gmatrix = Gmatrix, validPop = validPop, rand_pars = rand_pars,
