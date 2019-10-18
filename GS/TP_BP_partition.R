@@ -1,19 +1,22 @@
 
 
-TP_BP_partition = function (myPhen,myGen,traits,myPhen2,validation,unq){
+TP_BP_partition = function (myPhen,myGen,traits,myPhen2,rand_pars,validation,pnl){
   
   # Object . A function that returns the genotype IDs that have phenotypic and 
   #          genotypic information for each requested trait. Based on this information,
   #          it produces the random assignment matrices for training and validation populations.
-  # Input . myPhen . 
-  # Input . myGen . 
-  # Input . traits . 
-  # Input . myPhen2 .
+  # Input . myPhen . A data.frame with phenotypic data. First column contains genotype IDs. 
+  #         This will be used as Training and Validation, depending on 'phen2'
+  # Input . myGen . A character vector with the genotype IDs that are present in the genotypic matrix.
+  # Input . traits . A character vector with the traits to be analyzed. These strings are column names in 'phen' and 'phen2'
+  # Input . myPhen2 . A second data.frame (optional) with phenotypic data. This will be used for Validation only
+  # Input . rand_pars . Number of random partition populations to be used for prediction ability assessment.
+  # Input . validation . A numeric value in (0,1) defining the proportion of the population to be used for validation
+  # Input . pnl . Logical. Inlcude lines that were not present in the Training population in the prediction ? Used only when 'phen2' is provided
   # Output . A list with as many items as valid traits there are. 
   #          Each trait is a sublist containing a vector with genotype IDs (linePG), 
-  #          the length of that vector (len) and the Training and Validation partition matrices (combinat).
   # Authors: dariza and jdelahoz
-  #   Last modified: May 15, 2018
+  #   Last modified: Oct 18, 2019
   
   namesList = list()
   
@@ -41,7 +44,7 @@ TP_BP_partition = function (myPhen,myGen,traits,myPhen2,validation,unq){
       
       linePG_vp = intersect(as.character(myGen), lineP_vp)
 
-      if (unq){
+      if (pnl){
 
         linePG_vp = setdiff(linePG_vp, linePG)
         l2bu      = union(l2bu, linePG_vp)
@@ -66,7 +69,7 @@ TP_BP_partition = function (myPhen,myGen,traits,myPhen2,validation,unq){
     
     for( i in 1:rand_pars ){
       # 0 = train ; 1 = test
-      if (unq){
+      if (pnl){
 
         namesList[[trait]]$combinat[ linePG_vp , i] = 1
 
