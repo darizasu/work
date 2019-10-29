@@ -154,8 +154,8 @@ cv4BGLR <-
               
               myCorr = BGLRwrap(phen = phen,
                                trait = trait,
-                               X = geno[myNames,],
-                               pop.split = combinat[,i],
+                               X = geno,
+                               pop.split = combinat[myNames,i],
                                model = prior,
                                myNames = myNames,
                                G = G[myNames,myNames],

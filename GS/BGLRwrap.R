@@ -41,7 +41,7 @@ BGLRwrap <- function(phen, trait, X, pop.split, phen2, model, G, saveAt, myNames
     
   } else if (model=="BLassof") {
     
-    L = svd(G)
+    L = svd(G[myNames,myNames])
     Lm = L$u %*% diag(L$d)^(1/2)
     ETA = list(list(model="BL",     X=Lm))
     
@@ -55,7 +55,7 @@ BGLRwrap <- function(phen, trait, X, pop.split, phen2, model, G, saveAt, myNames
     
   } else if (model=="GBLUP") {
     
-    ETA = list(list(model="RKHS",   K=G))
+    ETA = list(list(model="RKHS",   K=G[myNames,myNames]))
     
   } else {
     
