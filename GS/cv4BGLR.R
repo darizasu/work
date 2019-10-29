@@ -158,7 +158,7 @@ cv4BGLR <-
                                pop.split = combinat[myNames,i],
                                model = prior,
                                myNames = myNames,
-                               G = G[myNames,myNames],
+                               G = G,
                                saveAt = paste0(outDir,'/'))
               cat(prior, trait, paste0('pop',i), myCorr$cor, paste0(Sys.time(),'\n'), sep = '\t')
               myTable = rbind(myTable, data.frame(model = prior, 
@@ -177,11 +177,11 @@ cv4BGLR <-
               myCorr = BGLRwrap(phen = phen,
                                trait = trait,
                                X = geno,
-                               pop.split = combinat[,i],
+                               pop.split = combinat[myNames,i],
                                phen2 = phen2,
                                model = prior,
                                myNames = myNames,
-                               G = G[myNames,myNames],
+                               G = G,
                                saveAt = paste0(outDir,'/'))
               cat(prior, trait, paste0('pop',i), myCorr$cor, paste0(Sys.time(),'\n'), sep = '\t')
               myTable = rbind(myTable, data.frame(model = prior, 
