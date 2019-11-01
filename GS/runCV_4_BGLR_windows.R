@@ -9,7 +9,7 @@ phen   <- 'D:/OneDrive - CGIAR/Daniel/Winny_Amongi/GS Data MEANS.txt'
 
 # traits <- Traits to run genomic prediction, in a vector of characters. The names must be the same than the ones in the 'phen' file.
 # traits <- c('ALSF','ALSFP','ANTFL','ANTFP','CBBFL','CBBFP','RUSTFL','RUSTFP','PLNTVIG','DF','DPM','YDHA','FESEED','ZNSEED')
-traits <- c('ALSF','ALSFP')
+traits <- c('YDHA','FESEED','ZNSEED')
 
 # outDir <- Output directory
 outDir <- 'D:/OneDrive - CGIAR/Daniel/Winny_Amongi'

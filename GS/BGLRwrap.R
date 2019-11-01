@@ -76,12 +76,13 @@ BGLRwrap <- function(phen, trait, X, pop.split, phen2, model, G, saveAt, myNames
   
   if (missing(phen2)){
     
-    Obs = phen[iNA,trait]
+    Obs = phen[myNames,trait]
+    Obs = Obs[iNA]
     
   } else {
     
-    phen2 = phen2[myNames,trait]
-    Obs = phen2[iNA]
+    Obs = phen2[myNames,trait]
+    Obs = Obs[iNA]
     
   }
   

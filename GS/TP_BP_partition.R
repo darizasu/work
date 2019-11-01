@@ -33,9 +33,9 @@ TP_BP_partition = function (myPhen,myGen,traits,myPhen2,rand_pars,validation,pnl
     # Get the list of samples with all phenotyped variables and genotypic data
     linePG = intersect(as.character(myGen), lineP)
     
-    namesList[[trait]]$linePG = sort(linePG)
+    namesList[[trait]]$linePG = linePG
     
-    l2bu = sort(linePG)
+    l2bu = linePG
     
     # If there is a 2nd dataset, get the list of lines that will be analyzed from both datasets
     if (is.data.frame(myPhen2)){

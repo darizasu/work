@@ -71,7 +71,7 @@ cv4BGLR <-
                                    myPhen2 = phen2, rand_pars = rand_pars, validation = validPop, pnl = pnl)
       
       save(names_list, file = paste0(outDir,'/names_list.RData'))
-      message('The population partition matrices and genotype names have been saved at:',
+      message('The population partition matrices and genotype names have been saved at: ',
               paste0(outDir,'/names_list.RData'),'\n')
       
       # Import partitions Training-Validation if provided  
