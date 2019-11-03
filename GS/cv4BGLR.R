@@ -135,7 +135,7 @@ cv4BGLR <-
 
     cat('\nmodel\ttrait\trandomPop\tcorr\tfinishedAt\n')
 
-    out_table = data.frame(model = NA, trait = NA, randomPop = NA, corr = NA, finishedAt = NA)
+    out_table = data.frame(prior = NA, trait = NA, randomPop = NA, corr = NA, finishedAt = NA)
 
     # Run cross validation
     for (trait in traits){
@@ -206,7 +206,7 @@ cv4BGLR <-
 
               cat(prior, trait, paste0('pop',i), out_cor$cor, paste0(Sys.time(),'\n'), sep = '\t')
 
-              out_table = rbind(out_table, data.frame(model = prior, 
+              out_table = rbind(out_table, data.frame(prior = prior, 
                                                   trait = trait, 
                                                   randomPop = paste0('pop',i), 
                                                   corr = out_cor$cor, 
