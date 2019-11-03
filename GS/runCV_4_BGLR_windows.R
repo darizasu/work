@@ -11,11 +11,11 @@ phen   <- 'D:/OneDrive - CGIAR/Daniel/Winny_Amongi/GS Data MEANS.txt'
 # traits <- c('ALSF','ALSFP','ANTFL','ANTFP','CBBFL','CBBFP','RUSTFL','RUSTFP','PLNTVIG','DF','DPM','YDHA','FESEED','ZNSEED')
 traits <- c('YDHA','FESEED','ZNSEED')
 
-# outDir <- Output directory
-outDir <- 'D:/OneDrive - CGIAR/Daniel/Winny_Amongi'
+# out_dir <- Output directory
+out_dir <- 'D:/OneDrive - CGIAR/Daniel/Winny_Amongi'
 
 # Name of the csv file to store the final results. NA avoids writing such file.
-saveTable <- 'D:/OneDrive - CGIAR/Daniel/Winny_Amongi/Prediction_results.csv'
+save_table <- 'D:/OneDrive - CGIAR/Daniel/Winny_Amongi/Prediction_results.csv'
 
 # geno <- A matrix with genotypic data coded as (-1,0,1) or (0,1,2) for homozygous reference allele, heterozygous, and homozygous alternative allele.
 # One column per marker and one row per genotype. No headers. The order of genotypes is the same order than that of the next 'samp' file
@@ -27,8 +27,8 @@ samp <- 'D:/OneDrive - CGIAR/Daniel/Winny_Amongi/GBS_Africa_population_repMasked
 # Gmatrix <- Kinship matrix. No headers. First column is for the genotype names. In case no Gmatrix is provided, the function 'A.mat' from the package rrBLUP is used to calculate it.
 Gmatrix <- NA
 
-# validPop <- Percentage of the total population to be used as validation population. This value must be an integer between 0 - 100.
-validPop <- 30
+# validation_perc <- Percentage of the total population to be used as validation population. This value must be an integer between 0 - 100.
+validation_perc <- 30
 
 # rand_pars <- Number of random partition populations to be used for prediction ability assessment. Any positive integer is accepted.
 # Proceed with caution here, the more populations the longer it takes to complete the whole analysis.
@@ -55,6 +55,6 @@ rand_SNPs <- NA
 
 source('https://raw.githubusercontent.com/darizasu/work/master/GS/cv4BGLR.R')
 
-pred.results <- cv4BGLR(model = model, phen = phen, traits = traits, outDir = outDir, saveTable = saveTable,
-                        geno = geno, samp = samp, Gmatrix = Gmatrix, validPop = validPop, rand_pars = rand_pars,
+pred_results <- cv4BGLR(model = model, phen = phen, traits = traits, out_dir = out_dir, save_table = save_table,
+                        geno = geno, samp = samp, Gmatrix = Gmatrix, validation_perc = validation_perc, rand_pars = rand_pars,
                         names_list = names_list, phen2 = phen2, common = common, pnl = pnl, rand_SNPs = rand_SNPs)

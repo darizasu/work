@@ -66,24 +66,24 @@ ca = sapply( split( ca[6:length(ca)],
 message('\nCommand line arguments:\n',
         paste0( c(commandArgs()[1:5], ca), collapse = "\n   "),'\n\n')
 
-model        = unlist(strsplit(args$m,','))
-traits       = unlist(strsplit(args$t,','))
-phen         = unlist(strsplit(args$p,','))[1]
-phen2        = unlist(strsplit(args$p,','))[2]
-outDir       = args$o
-samp         = args$s
-geno         = args$g
-Gmatrix      = args$G ;    Gmatrix = ifelse(Gmatrix    == 'NA', NA, Gmatrix)
-saveTable    = args$O ;  saveTable = ifelse(saveTable  == 'NA', NA, saveTable)
-names_list   = args$n ; names_list = ifelse(names_list == 'NA', NA, names_list)
-rand_SNPs    = args$r ;  rand_SNPs = ifelse(rand_SNPs  == 'NA', NA, rand_SNPs)
-common       = args$combine
-validPop     = as.integer(args$f)
-rand_pars    = as.integer(args$I)
-pnl          = args$i
+model           = unlist(strsplit(args$m,','))
+traits          = unlist(strsplit(args$t,','))
+phen            = unlist(strsplit(args$p,','))[1]
+phen2           = unlist(strsplit(args$p,','))[2]
+out_dir         = args$o
+samp            = args$s
+geno            = args$g
+Gmatrix         = args$G ;    Gmatrix = ifelse(Gmatrix    == 'NA', NA, Gmatrix)
+save_table      = args$O ;  save_table = ifelse(save_table  == 'NA', NA, save_table)
+names_list      = args$n ; names_list = ifelse(names_list == 'NA', NA, names_list)
+rand_SNPs       = args$r ;  rand_SNPs = ifelse(rand_SNPs  == 'NA', NA, rand_SNPs)
+common          = args$combine
+validation_perc = as.integer(args$f)
+rand_pars       = as.integer(args$I)
+pnl             = args$i
 
 source('https://raw.githubusercontent.com/darizasu/work/master/GS/cv4BGLR.R')
 
-pred.results <- cv4BGLR(model = model, phen = phen, traits = traits, outDir = outDir, saveTable = saveTable,
-                        geno = geno, samp = samp, Gmatrix = Gmatrix, validPop = validPop, rand_pars = rand_pars,
+pred_results <- cv4BGLR(model = model, phen = phen, traits = traits, out_dir = out_dir, save_table = save_table,
+                        geno = geno, samp = samp, Gmatrix = Gmatrix, validation_perc = validation_perc, rand_pars = rand_pars,
                         names_list = names_list, phen2 = phen2, common = common, pnl = pnl, rand_SNPs = rand_SNPs)
