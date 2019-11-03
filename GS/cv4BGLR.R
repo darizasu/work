@@ -172,7 +172,7 @@ cv4BGLR <-
                                trait = trait,
                                X = X,
                                pop_split = pop_split[l2bu,i],
-                               model = prior,
+                               prior = prior,
                                l2bu = l2bu,
                                G = G,
                                out_dir = paste0(out_dir,'/'),
