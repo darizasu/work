@@ -137,6 +137,9 @@ cv4BGLR <-
 
     out_table = data.frame(prior = NA, trait = NA, randomPop = NA, corr = NA, finishedAt = NA)
 
+    priors = setNames(c('BayesA','BayesB','BayesC','BRR',    'BL',    'FIXED'),
+                      c('BayesA','BayesB','BayesC','BayesRR','BLasso','FIXED'))
+
     # Run cross validation
     for (trait in traits){
 
@@ -160,7 +163,11 @@ cv4BGLR <-
           K = exp(-h * D)
           ETA = list(list(model = "RKHS", K = K))
 
-          } else ETA = NA
+        } else if(prior == "GBLUP"){
+
+          ETA = list(list(model = "RKHS",   K = G[l2bu,l2bu]))
+
+          } else ETA = list(list(model = priors[prior], X = X[l2bu,]))
 
         for (i in 1:rand_pars){
 
@@ -170,11 +177,9 @@ cv4BGLR <-
 
               out_cor = BGLRwrap(phen = phen,
                                trait = trait,
-                               X = X,
                                pop_split = pop_split[l2bu,i],
                                prior = prior,
                                l2bu = l2bu,
-                               G = G,
                                out_dir = paste0(out_dir,'/'),
                                ETA = ETA)
 
@@ -195,12 +200,10 @@ cv4BGLR <-
 
               out_cor = BGLRwrap(phen = phen,
                                trait = trait,
-                               X = X,
                                pop_split = pop_split[l2bu,i],
                                phen2 = phen2,
                                prior = prior,
                                l2bu = l2bu,
-                               G = G,
                                out_dir = paste0(out_dir,'/'),
                                ETA = ETA)
 
