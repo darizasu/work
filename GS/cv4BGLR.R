@@ -29,8 +29,12 @@ cv4BGLR <-
     
     # Remove redundant markers
     ds = duplicated(t(X))
-    warning("Removing ", sum(ds), " redundant markers from the original genotypic matrix.\n")
-    X = X[,!ds]
+    
+    if (sum(ds)){
+      
+      warning("Removing ", sum(ds), " redundant markers from the original genotypic matrix.\n", immediate. = T)
+      X = X[,!ds]
+    }
 
     # Import or calculate a kinship matrix
     if (is.na(Gmatrix)){
