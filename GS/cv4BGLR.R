@@ -26,6 +26,11 @@ cv4BGLR <-
     phen   = read.delim(phen, row.names = 1, check.names = F)
 
     phen2 = if (!is.na(phen2)) read.delim(phen2, row.names = 1, check.names = F) else NA
+    
+    # Remove redundant markers
+    ds = duplicated(t(X))
+    warning("Removing ", sum(ds), " redundant markers from the original genotypic matrix.\n")
+    X = X[,!ds]
 
     # Import or calculate a kinship matrix
     if (is.na(Gmatrix)){
