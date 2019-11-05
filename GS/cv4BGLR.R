@@ -27,15 +27,6 @@ cv4BGLR <-
 
     phen2 = if (!is.na(phen2)) read.delim(phen2, row.names = 1, check.names = F) else NA
     
-    # Remove redundant markers
-    ds = duplicated(t(X))
-    
-    if (sum(ds)){
-      
-      warning("Removing ", sum(ds), " redundant markers from the original genotypic matrix.\n", immediate. = T)
-      X = X[,!ds]
-    }
-
     # Import or calculate a kinship matrix
     if (is.na(Gmatrix)){
 
@@ -65,6 +56,15 @@ cv4BGLR <-
       message(rand_SNPs," SNPs have been selected from the original genotype matrix.",
               " The selected SNPs were saved at ",
               paste0(out_dir,'/Geno_matrix_',rand_SNPs,'SNPs_rrBLUP.in'),'\n')
+    }
+    
+    # Remove redundant markers
+    ds = duplicated(t(X))
+    
+    if (sum(ds)){
+      
+      warning("Removing ", sum(ds), " redundant markers from the original genotypic matrix.\n", immediate. = T)
+      X = X[,!ds]
     }
 
     # Import complementary functions
