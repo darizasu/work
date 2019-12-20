@@ -15,11 +15,11 @@ o <- R.utils::seqToIntervals(o)
 
 if (nrow(o) == 1){
   
-  cat(c(f, i, x, 0, o[nrow(o),1]), sep='\t', end='\n')
+  cat(c(f, i, x, 0, o[1,2] - o[1,1]), sep='\t', end='\n')
   
 } else if (nrow(o) > 1){
   
-  cat(c(f, i, x, o[1,2], o[nrow(o),1]), sep='\t', end='\n')
+  cat(c(f, i, x, o[1,2], o[nrow(o),2] - o[nrow(o),1]), sep='\t', end='\n')
   
 } else {
   
