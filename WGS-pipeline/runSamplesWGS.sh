@@ -53,13 +53,13 @@
 
 # This is the working directory full path. It must contain a subdirectory 'reads'
 # where the raw reads for the samples to be processed are located.
-WD=/bioinfo2/projects/bean_tmp/WGS_to_v2.1
+WD=/bioinfo1/projects/bean/WGS/v2.1
 
 # Give a name for this run
-runName=WGS
+runName=WGSnew
 
 # The number of subprocesses you want to run. It depends on the number of available cores.
-numThreads=5
+numThreads=16
 
 # Specify the task(s) you want to perform. Include only the initial capital letter in a single string.
 # It can include 'I'nsert-Length test, 'T'rimming, 'M'apping, 'V'ariant-Discovery.
@@ -69,28 +69,33 @@ TASKS=$1
 # This file must (MUST) be located at ${WD}/reads. This is a fasta file containing adapter 
 # sequences to be removed from the deconvoluted reads. Check Trimmomatic manual for more info.
 # In case you do not have adapter sequences to be removed, leave this parameter empty.
-adapters=
+adapters=/home/dariza/adaptersGBS.fa
 
 # This file must (MUST) contain its full path, check description above.
-samples2test=/bioinfo2/projects/bean_tmp/WGS_to_v2.1/mapping/samples2test.txt; 
+samples2test=/bioinfo1/projects/bean/WGS/v2.1/samples_WGS.txt
 
   # Path to Software used
 
-NGSEP=/data/software/NGSEPcore_3.0.2.jar
-BOWTIE2=/data/software/bowtie2-2.2.9/bowtie2
-PICARD=/data/software/picard-tools-1.140/picard.jar
-Trimmomatic=/home/dariza/software/Trimmomatic-0.36
+NGSEP=/home/dariza/software/NGSEP/NGSEPcore_3.3.0.jar
+BOWTIE2=/home/dariza/bin/bowtie2
+PICARD=/home/dariza/software/picard/picard.jar
+Trimmomatic=/bioinfo1/software/Trimmomatic-0.36/trimmomatic-0.36.jar
+Rscript=/home/dariza/bin/Rscript
+BGZIP=/usr/bin/bgzip
 
   # Reference genome files
 
-REF=/data/references/bean/v2.1/bowtie2/Pvulgaris_442_v2.0.fa
-STRs=/data/references/bean/v2.1/strs/Pvulgaris_v2_strs.list
+REF=/bioinfo1/references/bean/G19833/v2.1/bowtie2/Pvulgaris_442_v2.0.fa
+STRs=/bioinfo1/references/bean/G19833/v2.1/STRs/Pvulgaris_v2_strs.list
 
 
 #### ---------------------------------------------------------------------- ####
 #### ----------- DO NOT MODIFY ANYTHING FROM THIS POINT FORWARD ----------- ####
 #### ---------------------------------------------------------------------- ####
 
+
+# Make sure you DON'T have ASCII text with CRLF line terminators
+dos2unix ${samples2test}
 
 echo -e '\nThis run was executed by:  '$(whoami)'\n'
 
@@ -102,10 +107,64 @@ echo -e 'This run contains the following samples:\n'${list[@]}'\n'
 # called tmpList_XXX.tmp that contains chunks of the original list of samples.
 # It won't continue until all the sublists have finished.
 function assignThreads {
-  for index in `seq ${#list[@]}`
-    do samplesPerList=`expr ${index} % ${numThreads}`
-    grep -v '#' ${samples2population} | sed "${index}q;d" >> tmpList_${samplesPerList}.tmp
+
+  # 1st argument is a bash array with sample names
+  arr=("$@")
+  # 2nd argument is the number of threads to be used in the machine
+  nt=${arr[-1]}
+  unset 'arr[${#arr[@]}-1]'
+
+  for i in ${!arr[@]}
+  do
+
+    samplesPerList=`expr ${i} % ${nt}`
+    i=`expr ${i} + 1`
+    grep -v '#' ${samples2test} | sed -n -e ${i}p >> tmpList_${samplesPerList}.tmp
+  
   done
+}
+
+# Verify successful operation using a last keyword in log files
+function checkLastWord {
+
+  nErr=0
+  samN=()
+
+  # 1st argument is a bash array with sample names
+  arr=("$@")
+  # 2nd argument is the last word to be searched in a file
+  word=${arr[-1]}
+  unset 'arr[${#arr[@]}-1]'
+  # 3rd argument is the extension of the file to be searched
+  ext=${arr[-1]}
+  unset 'arr[${#arr[@]}-1]'
+
+  for s in ${arr[@]}
+  do
+    if [[ ! `tail -1 ${s}${ext}` == *${word}* ]]
+    then
+        nErr=`expr ${nErr} + 1`
+        samN=(${samN[@]} ${s})
+    fi
+  done
+
+  test ${nErr} -gt 0 && \
+  echo 'This task failed for '${nErr}' samples:' && \
+  echo ${samN[@]} && \
+  exit 1
+
+}
+
+# Print the distribution of samples per thread
+function printThreads {
+
+  tmp=$1
+  lst=(`cat ${tmp} | cut -f1 | tr '\n' ' '`)
+
+    echo -e 'File '${tmp}' contains the following samples:\n'${lst[@]}
+    myNum=`expr ${myNum} + ${#lst[@]}`
+    echo -e 'No. of samples assigned: '${myNum}'\n'
+
 }
 
 
@@ -127,8 +186,9 @@ then
   echo -e '\nStarting Insert Length test on '${runName}' files\n'$(date)'\n'
   echo 'Total number of samples: '${#list[@]}
 
-  assignThreads
+  assignThreads ${list[@]} ${numThreads}
   myNum=0
+  sed -i -e 's/^/#/' ${samples2test}
 
   for tmpFile in tmpList*tmp
   do
@@ -136,20 +196,20 @@ then
     # From the tmpList_XXX.tmp file (which is a chunk of the original list) 
     # put every line as an element of a bash array.
     myList=(`grep -v '#' ${tmpFile} | cut -f 1 | tr '\n' ' '`)
-    echo -e 'File '${tmpFile}' contains the following samples:\n'${myList[@]}
-    myNum=`expr ${myNum} + ${#myList[@]}`; echo -e 'No. of samples assigned: '${myNum}'\n'
+
+    test ! ${printIt} && printThreads ${tmpFile}
 
    ( for p in ${myList[@]}
-    do sleep 5
+    do sleep 1
 
-      zcat ${WD}/reads/${p}_1.fastq.gz | head -n 4000000 > ${p}_testInsert_1.fastq;
-      zcat ${WD}/reads/${p}_2.fastq.gz | head -n 4000000 > ${p}_testInsert_2.fastq;
+      zcat ${WD}/reads/${p}_1.fastq.gz | head -n 4000000 > ${p}_testInsert_1.fastq
+      zcat ${WD}/reads/${p}_2.fastq.gz | head -n 4000000 > ${p}_testInsert_2.fastq
 
       mkdir ${p}_tmpdir
 
       echo $(date) 'Aligning reads from '${p}
 
-      ${BOWTIE2} --rg-id ${p} --rg SM:${p} --rg PL:ILLUMINA -I 0 -X 1000 -t -x ${REF} \
+      ${BOWTIE2} --rg-id ${p} --rg SM:${p} --rg PL:ILLUMINA -I 0 -X 1200 -t -x ${REF} \
       -1 ${p}_testInsert_1.fastq -2 ${p}_testInsert_2.fastq 2> ${p}_testInsert.log | \
       java -Xmx3g -jar ${PICARD} SortSam MAX_RECORDS_IN_RAM=1000000 SO=coordinate \
       CREATE_INDEX=true TMP_DIR=${p}_tmpdir I=/dev/stdin O=${p}_testInsert_sorted.bam \
@@ -161,10 +221,26 @@ then
       INPUT=${p}_testInsert_sorted.bam OUTPUT=${p}_InsertSizeMetrics.txt \
       >> ${p}_InsertSizeMetrics.log 2>&1
 
+      # Calculate Max Insert size using +/- 4 MADs from the median
+
+      grep -A 2 METRICS ${p}_InsertSizeMetrics.txt | tail -n 2 | \
+        python -c "import sys; print('\n'.join('\t'.join(c) for c in zip(*(l.split() for l in sys.stdin.readlines() if l.strip()))))" < \
+        /dev/stdin | grep -e MEDIAN | cut -f2 > ${p}.metrics
+
+        med=`head -n 1 ${p}.metrics`
+        mad=`tail -n 1 ${p}.metrics`
+
+        maxIns=`expr ${med} + 4 \* ${mad}`
+        minIns=`expr ${med} - 4 \* ${mad}`
+
+        test ${minIns} -lt 0 && minIns=0
+
+        echo -e ${p}'\t'${minIns}'\t'${maxIns} >> ${samples2test}
+
      # remove temporal files
 
       rm -f ${p}_testInsert_*.fastq ${p}_testInsert_sorted.ba* ${p}_testInsert.log
-      rm -r ${p}_tmpdir
+      rm -r ${p}_tmpdir ${p}.metrics
 
     done ) &
 
@@ -172,14 +248,12 @@ then
   wait
 
   ################
-  for index in ${!list[@]}; do
-    if [[ ! `tail -1 ${list[${index}]}_InsertSizeMetrics.log` == *totalMemory* ]]
-      then echo "Error: Test insert lenght failed for "${list[${index}]}" at some point !!"; exit 1
-    fi
-  done
+  checkLastWord ${list[@]} _InsertSizeMetrics.log totalMemory
   ################
 
-  rm tmpList*tmp ${p}_InsertSizeMetrics.log
+  rm tmpList*tmp *InsertSizeMetrics.log
+
+  printIt="stop"
 
   echo -e '\nInsert Length test on '${runName}' files seems to be completed\n'$(date)'\n'
 
@@ -203,11 +277,13 @@ then
   echo -e '\nStarting trimming on '${runName}' files'$(date)'\n'
   mkdir unTrimmed_reads
 
+  list=(`grep -v '#' ${samples2test} | cut -f 1 | tr '\n' ' '`)
+
   for samp in ${list[@]}; do mv ./${samp}*.fastq.gz ./unTrimmed_reads; done
 
   echo 'Total number of samples: '${#list[@]}
 
-  assignThreads
+  assignThreads ${list[@]} ${numThreads}
   myNum=0
 
   for tmpFile in tmpList*tmp
@@ -217,19 +293,18 @@ then
     # put every line as an element of a bash array.
     myList=(`cat ${tmpFile} | cut -f 1 | tr '\n' ' '`)
 
-    echo 'File '${tmpFile}' contains the following samples: '; echo ${myList[@]}
-    myNum=`expr ${myNum} + ${#myList[@]}`; echo -e 'No. of samples assigned: '${myNum}'\n'
+    test ! ${printIt} && printThreads ${tmpFile}
 
   ( for p in ${myList[@]}
     do
 
-      sleep 5
+      sleep 1
 
       echo $(date) 'Trimming reads from '${p}
-      java -jar ${Trimmomatic}/trimmomatic-0.36.jar PE -threads 1 ${WD}/reads/unTrimmed_reads/${p}_1.fastq.gz \
+      java -jar ${Trimmomatic} PE -threads 1 ${WD}/reads/unTrimmed_reads/${p}_1.fastq.gz \
       ${WD}/reads/unTrimmed_reads/${p}_2.fastq.gz ${WD}/reads/${p}_1.fastq.gz ${WD}/reads/${p}_U1.fastq.gz \
       ${WD}/reads/${p}_2.fastq.gz ${WD}/reads/${p}_U2.fastq.gz \
-      ILLUMINACLIP:${adapters}:2:20:9:2 LEADING:5 TRAILING:5 SLIDINGWINDOW:4:5 MINLEN:36 > ${p}_trimmomatic.log 2>&1
+      ILLUMINACLIP:${adapters}:2:20:9:2:true LEADING:5 TRAILING:5 SLIDINGWINDOW:4:5 MINLEN:36 > ${p}_trimmomatic.log 2>&1
 
       cat ${WD}/reads/${p}_U1.fastq.gz ${WD}/reads/${p}_U2.fastq.gz > ${WD}/reads/${p}_U.fastq.gz
 
@@ -239,14 +314,12 @@ then
   wait
 
   ################
-  for index in ${!list[@]}; do
-    if [[ ! `tail -1 ${list[${index}]}_trimmomatic.log` == *Completed* ]]
-      then echo "Error: There are no trimmed reads for "${list[${index}]}; exit 1
-    fi
-  done
+  checkLastWord ${list[@]} _trimmomatic.log Completed
   ################
 
-  rm *tmp *trimmomatic.log
+  rm *tmp #*trimmomatic.log
+
+  printIt="stop"
 
   # Remove untrimmed reads. Comment this line to avoid this behavior.
 #  rm -rf unTrimmed_reads
@@ -268,14 +341,17 @@ if [[ ${TASKS} == *M* ]]
 then
 
   if [ ! -d ${WD}/mapping ]; then mkdir ${WD}/mapping ; echo 'The mapping path '${WD}'/mapping was created'; fi
+  
   cd ${WD}/mapping
 
   echo -e '\nStarting mapping on '${runName}' files\n' $(date)'\n'
 
+  list=(`grep -v '#' ${samples2test} | cut -f 1 | tr '\n' ' '`)
   echo 'Total number of samples: '${#list[@]}
 
-  assignThreads
+  assignThreads ${list[@]} ${numThreads}
   myNum=0
+  sed -i -e 's/^/#/' ${samples2test}
 
   for tmpFile in tmpList*tmp
   do
@@ -286,11 +362,10 @@ then
     I=(`cut -f 2 ${tmpFile} | tr '\n' ' '`)
     X=(`cut -f 3 ${tmpFile} | tr '\n' ' '`)
 
-    echo -e 'File '${tmpFile}' contains the following samples:\n'${myList[@]}
-    myNum=`expr ${myNum} + ${#myList[@]}`; echo -e 'No. of samples assigned: '${myNum}'\n'
+    test ! ${printIt} && printThreads ${tmpFile}
 
    ( for index in ${!myList[@]}
-    do sleep 5
+    do sleep 1
 
    # Map the reads and sort the alignment using BOWTIE2
 
@@ -302,12 +377,15 @@ then
 
       ${BOWTIE2} --rg-id ${myList[${index}]} --rg SM:${myList[${index}]} --rg PL:ILLUMINA -k 3 \
       -I ${I[${index}]} -X ${X[${index}]} -t -x ${REF} -1 ${WD}/reads/${myList[${index}]}_1.fastq.gz \
-      -2 ${WD}/reads/${myList[${index}]}_2.fastq.gz ${unpairandtrimmed}  2> ${myList[${index}]}_bowtie2.log | \
-      java -Xmx10g -jar ${PICARD} SortSam MAX_RECORDS_IN_RAM=1000000 SO=coordinate CREATE_INDEX=true \
+      -2 ${WD}/reads/${myList[${index}]}_2.fastq.gz -p 1 ${unpairandtrimmed}  2> ${myList[${index}]}_bowtie2.log | \
+      java -Xmx30g -jar ${PICARD} SortSam MAX_RECORDS_IN_RAM=1000000 SO=coordinate CREATE_INDEX=true \
       TMP_DIR=${myList[${index}]}_tmpdir I=/dev/stdin O=${myList[${index}]}_bowtie2_sorted.bam \
       >& ${myList[${index}]}_bowtie2_sort.log
 
       rm -rf ${myList[${index}]}_tmpdir
+      rm ${WD}/reads/${myList[${index}]}_1.fastq.gz \
+        ${WD}/reads/${myList[${index}]}_2.fastq.gz \
+        ${WD}/reads/${myList[${index}]}_U.fastq.gz
 
     # Calculate statistics from the alignments file
 
@@ -318,6 +396,9 @@ then
       java -Xmx5g -jar ${NGSEP} CoverageStats ${myList[${index}]}_bowtie2_sorted.bam \
       ${myList[${index}]}_bowtie2_coverage.stats >& ${myList[${index}]}_bowtie2_coverage.log
 
+      ${Rscript} -e "source('https://raw.githubusercontent.com/darizasu/work/master/WGS-pipeline/readPosThreshold.R')" \
+        ${myList[${index}]} ${I[${index}]} ${X[${index}]} >> ${samples2test}
+
       echo $(date) ${myList[${index}]}' is DONE'
 
     done ) &
@@ -327,15 +408,10 @@ then
 
   rm *tmp
 
+  printIt="stop"
+
   ################
-  # Check mapping failures
-  numErrors=0
-  for index in ${!list[@]}
-  do if [[ ! `tail -1 ${list[${index}]}_bowtie2_coverage.stats` == *More* ]]
-    then numErrors=`expr ${numErrors} + 1`
-    echo 'Error: Mapping for sample '${list[${index}]}' failed at some point !!'
-  fi; done
-  if [[ ${numErrors} > 0 ]]; then echo 'Error: Mapping failed for '${numErrors}' samples'; exit 1; fi
+  checkLastWord ${list[@]} _bowtie2_coverage.stats More
   ################
 
   echo -e '\nMapping on '${runName}' files seems to be completed\n'$(date)'\n'
@@ -359,9 +435,10 @@ then
 
   echo -e '\nStarting variant discovery on '${runName}' files\n'$(date)'\n'
 
+  list=(`grep -v '#' ${samples2test} | cut -f 1 | tr '\n' ' '`)
   echo 'Total number of samples: '${#list[@]}
 
-  assignThreads
+  assignThreads ${list[@]} ${numThreads}
   myNum=0
 
   for tmpFile in tmpList*tmp
@@ -373,19 +450,18 @@ then
     Ifive=(`cut -f 4 ${tmpFile} | tr '\n' ' '`)
     Ithree=(`cut -f 5 ${tmpFile} | tr '\n' ' '`)
 
-    echo 'File '${tmpFile}' contains the following samples: '; echo ${myList[@]}
-    myNum=`expr ${myNum} + ${#myList[@]}`; echo -e 'No. of samples assigned: '${myNum}'\n'
+    test ! ${printIt} && printThreads ${tmpFile}
 
    ( for index in ${!myList[@]}
-    do sleep 5
+    do sleep 1
 
       echo $(date) 'Variant discovery in '${myList[${index}]}
 
-      java -Xmx15g -jar ${NGSEP} FindVariants -h 0.0001 -maxBaseQS 30 -minQuality 40 \
+      java -Xmx15g -jar ${NGSEP} FindVariants -h 0.0001 -noRep -maxBaseQS 30 -minQuality 40 \
       -maxAlnsPerStartPos 2 -ignore5 ${Ifive[${index}]} -ignore3 ${Ithree[${index}]} \
       -sampleId ${myList[${index}]} -knownSTRs ${STRs} ${REF} ${myList[${index}]}_bowtie2_sorted.bam \
       ${myList[${index}]}_bowtie2_NGSEP >& ${myList[${index}]}_bowtie2_NGSEP.log
-      bgzip ${myList[${index}]}_bowtie2_NGSEP.vcf
+      ${BGZIP} ${myList[${index}]}_bowtie2_NGSEP.vcf
 
     done ) &
 
@@ -394,15 +470,10 @@ then
 
   rm *tmp
 
+  printIt="stop"
+
   ################
-  # Check variant discovery failures
-  numErrors=0
-  for index in ${!list[@]}
-  do if [[ ! `tail -1 ${list[${index}]}_bowtie2_NGSEP.log` == *Completed* ]]
-    then numErrors=`expr ${numErrors} + 1`
-    echo 'Error: Variant discovery for sample '${list[${index}]}' failed at some point !!'
-  fi; done
-  if [[ ${numErrors} > 0 ]]; then echo 'Error: Variant discovery failed for '${numErrors}' samples'; exit 1; fi
+  checkLastWord ${list[@]} _bowtie2_NGSEP.log Completed
   ################
 
   echo -e '\nVariant-discovery on '${runName}' files seems to be completed\n'$(date)'\n'
