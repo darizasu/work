@@ -66,6 +66,8 @@ cv4BGLR <-
       warning("Removing ", sum(ds), " redundant markers from the original genotypic matrix.\n", immediate. = T)
       X = X[,!ds]
     }
+    
+    message('This run is using ', ncol(X), ' markers.')
 
     # Import complementary functions
     source("https://raw.githubusercontent.com/darizasu/work/master/GS/TP_BP_partition.R")
