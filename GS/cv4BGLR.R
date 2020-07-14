@@ -225,6 +225,8 @@ cv4BGLR <-
                                                   finishedAt = Sys.time()))
             }
           }
+          
+          file.remove(list.files(path = out_dir, pattern = ".dat"))
         }
       }
     }
