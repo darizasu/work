@@ -152,6 +152,7 @@ cv4BGLR <-
                       c('BayesA','BayesB','BayesC','BayesRR','BLasso','FIXED'))
 
     # Run cross validation
+    print(store)
     for (trait in traits){
 
       set.seed(1234)
