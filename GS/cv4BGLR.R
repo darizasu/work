@@ -1,6 +1,6 @@
 cv4BGLR <- 
-  function(model, phen, traits, out_dir = getwd(), save_table = NA, 
-           geno, samp, Gmatrix = NA, validation_perc = 30, rand_pars = 10,
+  function(model, phen, traits, out_dir = getwd(), save_table = NA, store = FALSE,
+           geno, samp, Gmatrix = NA, validation_perc = 30, rand_pars = 10, 
            names_list = NA, phen2 = NA, common = TRUE, pnl = FALSE, rand_SNPs = NA){
 
     # Load BGLR
@@ -201,6 +201,11 @@ cv4BGLR <-
                                                   randomPop = paste0('pop',i), 
                                                   corr = out_cor$cor, 
                                                   finishedAt = Sys.time()))
+
+              if (store){
+                write.csv(x = out_cor$table, append = T, quote = F, row.names = F,
+                          file = paste0(prior, '_', trait, '_pop', i, '.csv'))
+              }
             }
 
           } else {
@@ -225,6 +230,12 @@ cv4BGLR <-
                                                   randomPop = paste0('pop',i), 
                                                   corr = out_cor$cor, 
                                                   finishedAt = Sys.time()))
+
+              if (store){
+                write.csv(x = out_cor$table, append = T, quote = F, row.names = F,
+                          file = paste0(prior, '_', trait, '_pop', i, '.csv'))
+              }
+
             }
           }
           

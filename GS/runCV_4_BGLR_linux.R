@@ -8,12 +8,12 @@ new.pckgs = suppressMessages( sapply(LoP, require, character.only = TRUE) )
 
 if (sum(!new.pckgs)){
   warning("This script will try to install the packages - ",
-          toString(new.pckgs),
+          names(new.pckgs)[!new.pckgs],
           " - and all its dependencies. Otherwise abort this execution",
           immediate. = TRUE)
   Sys.sleep(10)
-  install.packages(pkgs=new.pckgs, 
-                   repos="http://cran.r-project.org", dependencies = T)
+  install.packages(pkgs = names(new.pckgs)[!new.pckgs], 
+                   repos = "http://cran.r-project.org", dependencies = T)
 }
 
 parser = ArgumentParser()
@@ -46,6 +46,8 @@ parser$add_argument("-c", "--combine", action="store_true", default=FALSE,
                     help="Find traits with exactly the same set of genotypes and assign them a common random population partition for cross validation. [Default %(default)s]")
 parser$add_argument("-i", "--include", action="store_true", default=FALSE,
                     help="Inlcude lines that were not present in the Training population in the prediction. Only valuable when two phenotype files are provided with the '-p' option. This option could alter the TP - VP partitions, since more lines are predicted in the validation population. [Default %(default)s]")
+parser$add_argument("-S", "--store", action="store_true", default=FALSE,
+                    help="Save the observed and predicted values produced from each prediction. Useful when using it with --include option. [Default %(default)s]")
 
 args = parser$parse_args()
 
@@ -81,9 +83,10 @@ common          = args$combine
 validation_perc = as.integer(args$f)
 rand_pars       = as.integer(args$I)
 pnl             = args$i
+store           = args$S
 
 source('https://raw.githubusercontent.com/darizasu/work/master/GS/cv4BGLR.R')
 
-pred_results <- cv4BGLR(model = model, phen = phen, traits = traits, out_dir = out_dir, save_table = save_table,
+pred_results <- cv4BGLR(model = model, phen = phen, traits = traits, out_dir = out_dir, save_table = save_table, store = store,
                         geno = geno, samp = samp, Gmatrix = Gmatrix, validation_perc = validation_perc, rand_pars = rand_pars,
                         names_list = names_list, phen2 = phen2, common = common, pnl = pnl, rand_SNPs = rand_SNPs)
