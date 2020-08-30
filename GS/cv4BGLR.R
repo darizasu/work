@@ -204,7 +204,7 @@ cv4BGLR <-
 
               if (store){
                 write.csv(x = out_cor$table, append = T, quote = F, row.names = F,
-                          file = paste0(prior, '_', trait, '_pop', i, '.csv'))
+                          file = paste0(out_dir, '/', prior, '_', trait, '_pop', i, '.csv'))
               }
             }
 
@@ -233,7 +233,7 @@ cv4BGLR <-
 
               if (store){
                 write.csv(x = out_cor$table, append = T, quote = F, row.names = F,
-                          file = paste0(prior, '_', trait, '_pop', i, '.csv'))
+                          file = paste0(out_dir, '/', prior, '_', trait, '_pop', i, '.csv'))
               }
 
             }
