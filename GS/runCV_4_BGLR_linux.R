@@ -46,7 +46,7 @@ parser$add_argument("-c", "--combine", action="store_true", default=FALSE,
                     help="Find traits with exactly the same set of genotypes and assign them a common random population partition for cross validation. [Default %(default)s]")
 parser$add_argument("-i", "--include", action="store_true", default=FALSE,
                     help="Inlcude lines that were not present in the Training population in the prediction. Only valuable when two phenotype files are provided with the '-p' option. This option could alter the TP - VP partitions, since more lines are predicted in the validation population. [Default %(default)s]")
-parser$add_argument("-S", "--store", action="store_true", default=FALSE,
+parser$add_argument("-z", "--store", action="store_true", default=FALSE,
                     help="Save the observed and predicted values produced from each prediction. Useful when using it with --include option. [Default %(default)s]")
 
 args = parser$parse_args()
@@ -83,7 +83,7 @@ common          = args$combine
 validation_perc = as.integer(args$f)
 rand_pars       = as.integer(args$I)
 pnl             = args$i
-store           = args$S
+store           = args$store
 
 source('https://raw.githubusercontent.com/darizasu/work/master/GS/cv4BGLR.R')
 
