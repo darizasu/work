@@ -23,7 +23,7 @@ cM_converter <-
   
   colnames(pred)[c(chrom_col,pos_col)] = c('CHR','POS')
   
-  for (chr in levels(map$CHR)){
+  for (chr in unique(map$CHR)){
     
     # pred[pred$CHR == chr,'POS'] = sort(pred[pred$CHR == chr,'POS'])
     

@@ -85,7 +85,6 @@ ggCor <-
     
     # Keep x, y, p val and corr-coefficients columns
     cors = cors[,c(1,2,4,5,7)]
-    print(str(cors))
     
     if (returnN){
       
