@@ -1,7 +1,8 @@
-function(myData, colours = c('#db4437','white','#FF9D00'),
-         blackLabs = c(-0.7, 0.7), showSignif = TRUE,
-         pBreaks = c(0, .0001, .001, .01, Inf), pLabels = c('***','**','*', 'ns'),
-         showDiagonal = FALSE, Diag = NULL, returnTable = FALSE, returnN = FALSE){
+ggCor <- 
+  function(myData, colours = c('#db4437','white','#FF9D00'),
+           blackLabs = c(-0.7, 0.7), showSignif = TRUE,
+           pBreaks = c(0, .0001, .001, .01, Inf), pLabels = c('***','**','*', 'ns'),
+           showDiagonal = FALSE, Diag = NULL, returnTable = FALSE, returnN = FALSE){
   
   #   Goal      : Return a ggplot object to plot a triangular correlation figure between 2 or more variables.
   #               Depends on the packages 'ggplot2' 'psych' and 'reshape'
