@@ -96,13 +96,21 @@ def ref (reference):
 
 def findSNP (ref, snp):
 
-    if ref != snp:
-        for i in range(len(ref)):
-            if ref[i] != snp[i]:
-                return ref[i], snp[i]
+    d = sum( x != y for x, y in zip(ref, snp) )
 
-    else:
+    if d > 1:
+        ref = ref[::-1]
+        ref = "".join([compSNP(i) for i in ref])
+        d = sum( x != y for x, y in zip(ref, snp) )
+        if d > 1:
+            print('ERROR EXIT', ref, snp)
+
+    elif d == 0:
         return None , None
+
+    for i in range(len(ref)):
+        if ref[i] != snp[i]:
+            return ref[i] , snp[i]
 
 
 def dartR (dart, mn, at, aq, first = False):
@@ -154,13 +162,18 @@ def dartR (dart, mn, at, aq, first = False):
         #          'snp': [[ALT],[GT],[DP]]}}
 
 
-def compSNP(r, s):
+def compSNP(r, s = False):
 
-    a = {'A': 'T', 'T': 'A', 'C': 'G', 'G': 'C'}
-    return a[r] , a[s]
+    a = {'A':'T', 'T':'A', 'C':'G', 'G':'C',
+         'R':'Y', 'Y':'R', 'K':'M', 'M':'K', 'S':'S', 'W':'W',
+         'N':'N', 'B':'B', 'D':'D', 'H':'H', 'V':'V', 'X':'X', '-':'-'}
+    if s:
+        return a[r] , a[s]
+    else:
+        return a[r]
 
 
-def errmsg(kerr, aerr, awarn):
+def errmsg(kerr, aerr, merr, awarn):
 
     if kerr:
         print('\nThe following markers were present in the DArT file but not in the reference markers file.\n',
@@ -172,10 +185,15 @@ def errmsg(kerr, aerr, awarn):
               'They were not included in the final VCF:\n\n',
               '\n'.join(['\t' + i for i in aerr]), file = sys.stderr, end = '\n', sep = '')
 
+    if merr:
+        print('\nThe following markers do not have genotype calls for any sample.\n',
+              'They were not included in the final VCF:\n\n',
+              '\n'.join(['\t' + i for i in merr]), file = sys.stderr, end = '\n', sep = '')
+
     if awarn:
-            print('\nThe following markers have switched REF and ALT alleles between the DArT and the reference markers file.\n',
-                  'They were included in the VCF using the alleles in the reference markers file.\n\n',
-                  '\n'.join(['\t' + i for i in awarn]), file = sys.stderr, end = '\n', sep = '')
+        print('\nThe following markers have switched REF and ALT alleles between the DArT and the reference markers file.\n',
+              'They were included in the VCF using the alleles in the reference markers file.\n\n',
+              '\n'.join(['\t' + i for i in awarn]), file = sys.stderr, end = '\n', sep = '')
 
     return None
 
@@ -183,6 +201,9 @@ def errmsg(kerr, aerr, awarn):
 def infoW(f):
 
     NS = len(f) - sum('./.' in i for i in f)
+    if NS == 0:
+        return None 
+
     AC_Het = sum('0/1' in i for i in f)
     AC_Hom = sum('1/1' in i for i in f)
     MAF = ((min( sum('0/0' in i for i in f), AC_Hom ) * 2) + AC_Het) / (NS * 2)
@@ -254,6 +275,7 @@ def vcfW(vcf, dartG, reference, mn, at, aq, dartC = False):
         
         kerr = list()
         aerr = list()
+        merr = list()
         awarn = list()
 
         for k in list(m): # Avoid Runtime error because of dict changing size
@@ -277,6 +299,10 @@ def vcfW(vcf, dartG, reference, mn, at, aq, dartC = False):
 
                 SAMPLE = lineW(m[k], dartC)
                 INFO = infoW(SAMPLE)
+                if not INFO:
+                    merr.append(k)
+                    continue
+
                 CPIRA = r[k]
                 CPIRA[2] = k
 
@@ -285,7 +311,7 @@ def vcfW(vcf, dartG, reference, mn, at, aq, dartC = False):
             else:
                 kerr.append(k)
 
-        errmsg(kerr, aerr, awarn)
+        errmsg(kerr, aerr, merr, awarn)
 
         for marker in sorted(line, key = lambda x: (x[0], int(x[1]))):
             vcf.write('\t'.join(marker) + '\n')
