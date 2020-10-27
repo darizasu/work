@@ -1,5 +1,6 @@
 #!/bin/bash
 
+
 #### ---------------------------------------------------------------------- ####
 #### ---------------------- KEY VARIABLES TO SPECIFY ---------------------- ####
 #### ---------------------------------------------------------------------- ####
@@ -10,20 +11,20 @@
    #    \_ reads
    #      \_ lane
 # The subdirectory 'lane' contains the raw sequencing reads in FASTQ format
-WD=/bioinfo1/projects/bean/GBS_QC/36
+WD=/bioinfo1/projects/bean/GBS_pl37-40/40a
 
 # Check NGSEP Deconvolute <INDEX_FILE> parameter for more information
 # about the following ${INDEXFILE} file. This file should be located at ${WD}/reads/lane
 # otherwise ts full path must be specified. 
-INDEXFILE=/bioinfo1/projects/bean/GBS_QC/36/reads/lane/barcodeMap_plate36.txt
+INDEXFILE=/bioinfo1/projects/bean/GBS_pl37-40/40a/reads/lane/barcodeMap_plate40a.txt
 
 # Check NGSEP Deconvolute -d flag for more information about the 
 # following ${FILES2DECONV} file. This file should be located at 
 # ${WD}/reads/lane , otherwise its full path must be specified. 
-FILES2DECONV=/bioinfo1/projects/bean/GBS_QC/36/reads/lane/lanes_plate36.txt
+FILES2DECONV=/bioinfo1/projects/bean/GBS_pl37-40/40a/reads/lane/lanes_plate40a.txt
 
 # This is the plate number ID.
-pno=36
+pno=40a
 
 # The number of subprocesses you want to run.
 # It depends on the number of available cores in your machine.
@@ -39,7 +40,7 @@ TASKS=$1
 # The following 'adapters' file is a FASTA file containing adapter sequences to 
 # be removed from the deconvoluted reads. It is only used when you run the 
 # 'T'rimming task. Check the Trimmomatic manual for more info.
-adapters=
+adapters=/home/dariza/adapter.fa
 
 # The following parameters are used when you run the 'V'ariant-Discovery and/or
 # the 'Q'uality-check tasks. They are used to ignore this many base pairs 
@@ -53,8 +54,8 @@ adapters=
 # have a high sequencing error bias (guide yourself by the behavior of the slope).
 # Then decide the i5 and i3 parameters and specify them in the following lines. 
 # Then run again this script with the task 'V'.
-i5=1
-i3=10
+i5=7
+i3=13
 
 # In case you specified the task 'Q'uality-check, 'myVariants' is a mandatory parameter.
 # 'myVariants' is a comprehensive list of variants for the species of interest.
@@ -66,13 +67,13 @@ myVariants=/bioinfo1/references/bean/G19833/v2.1/variants/Variants_WGS_tpg_noGen
   # Reference genome files
 
 REF=/bioinfo1/references/bean/G19833/v2.1/bowtie2/Pvulgaris_442_v2.0.fa
-STRs=/bioinfo1/references/bean/G19833/v2.1/STRs/Pvulgaris_v2_strs.list
+STRs=/bioinfo1/references/bean/G19833/v2.1/STRs//Pvulgaris_v2_strs.list
 
   # Path to Software used
 
 NGSEP=/home/dariza/software/NGSEP/NGSEPcore_3.3.0.jar
-BOWTIE2=/data/software/bowtie2-2.3.0/bowtie2
-PICARD=/data/software/picard-tools-1.140/picard.jar
+BOWTIE2=/home/dariza/bin/bowtie2
+PICARD=/home/dariza/software/picard/picard.jar
 Trimmomatic=/bioinfo1/software/Trimmomatic-0.36/trimmomatic-0.36.jar
 BGZIP=/usr/bin/bgzip
 
@@ -172,7 +173,7 @@ function checkLastWord {
     if [[ ! `tail -1 ${s}${ext}` == *${word}* ]]
     then
         nErr=`expr ${nErr} + 1`
-        samN=(${samN[@]} ${s})
+        samN=(samN[@] ${s})
     fi
   done
 
@@ -429,7 +430,7 @@ then
 
   echo -e '\nMapping on plate '${pno}' files seems to be completed\n'$(date)'\n'
 
-  rm readPosStats_pl${pno}.tmp ${WD}/mapping/*bowtie2_readpos.stats
+  rm readPosStats_pl${pno}.tmp #${WD}/mapping/*bowtie2_readpos.stats
   printIt="stop"
 
 else
@@ -514,7 +515,7 @@ then
   echo -e '\nStarting Quality-check on plate '${pno}'\n'$(date)'\n'
 
   # Avoid using too many threads here. This is a memory-demanding process
-  assignThreads ${list[@]} 6
+  assignThreads ${list[@]} 3
 
   for tmpFile in tmpList_*${pno}.tmp
   do

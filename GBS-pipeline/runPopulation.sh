@@ -4,10 +4,10 @@
 
 # This is the working directory full path. It creates the directories 'genotyping' 
 # and 'population' in case they don't exist.
-WD=/bioinfo1/projects/bean/joint_pops/ADP_VEC_VEF/v2.1
+WD=/bioinfo1/projects/bean/joint_pops/AXM_extended/DArT_extended
 
 # This is your population's name
-popName=ADP_MIP_VEC_VEF
+popName=extDArT
 
 # The number of subprocesses you want to run. It depends on the number of available cores.
 numThreads=20
@@ -50,13 +50,13 @@ quality=(40)
  
 # See the example below:
 # /bioinfo2/projects/GBSplates/01/mapping/ALB_213	ALB_213-p01H10	4	10
-samples2population=/bioinfo1/projects/bean/joint_pops/ADP_VEC_VEF/v2.1/samples_in_ADP_MIP_VEC_VEF.txt
+samples2population=/bioinfo1/projects/bean/joint_pops/AXM_extended/DArT_extended/samples_in_extDArT.txt
 
 # In case you DO NOT want to run MergeVariants with the whole list of samples
 # specified in 'samples2population', please use the parameter 'myVariants' to specify
 # a list of variants in VCF format with its full path. This file is produced after 
 # running NGSEP MergeVariants with other set of VCF files.
-myVariants=
+myVariants=/bioinfo1/projects/bean/joint_pops/AXM_extended/DArT_extended/genotyping/Reference_DArT_VEF_list.vcf
 
 # The following variables define the file extension that the BAM and VCF files have in 
 # the location specified in the '/path/to/sample' of 'samples2population' (1st column). 
