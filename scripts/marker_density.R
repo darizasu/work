@@ -18,7 +18,7 @@ marker_density <- function(markers, bin = 2.5e5, chromID = 'Chromosome', posID =
   #   Input     : plot_centro . Logical. Should the centromeric regions be drawn ?
   #   Output    : barplot object with the density of markers for each chromosome
   #   Authors   : darizasu
-  #    Last update: April 9, 2019
+  #    Last update: January 31st, 2021
 
   markers = markers[,c(chromID,posID)]
 
@@ -55,7 +55,7 @@ marker_density <- function(markers, bin = 2.5e5, chromID = 'Chromosome', posID =
   ylim = ceiling( max(markers[,posID], na.rm = T) / 1e6 ) * 1e6
 
   yTicks = seq(0, ylim, 1e7)
-  yLabs  = paste(yTicks / 1e6, "Mb")
+  yLabs  = paste(yTicks / 1e6, "Mbp")
   
   if(is.null(chromLabs)) chromLabs = chroms
   
@@ -63,7 +63,7 @@ marker_density <- function(markers, bin = 2.5e5, chromID = 'Chromosome', posID =
   par(mar=c(0.5, 5, 2, 1), fig = c(0,1,0,1))
 
   bp = barplot(dens_matrix, horiz = F, las = 2, xaxt = 'n', yaxt = 'n',
-               border = NA, space = 2, cex.names = 1, ylab = 'Position',
+               border = NA, space = 2, cex.names = 1, ylab = 'Physical Position',
                col = cols, ylim = c(ylim, 0))
 
   axis(3, labels = chromLabs, at = bp, las=1, cex.axis=0.75, tick=F, line=-.5, font=2)
