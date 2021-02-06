@@ -4,16 +4,13 @@
 
 # This is the working directory full path. It creates the directories 'genotyping' 
 # and 'population' in case they don't exist.
-WD=/path/to
+WD=/bioinfo1/projects/bean/duplicates
 
 # This is your population's name
-popName=myPopulation
-
-# Specify the quality thresholds for FilterVCF
-quality=(60)
+popName=duplicates
 
 # The number of subprocesses you want to run. It depends on the number of available cores.
-numThreads=6
+numThreads=16
 
 # The file specified in the 'samples2population' parameter contains info about 
 # the location of BAM and VCF files for every sample.
@@ -40,12 +37,8 @@ numThreads=6
  
 # See the example below:
 # /bioinfo2/projects/GBSplates/01/mapping/ALB_213	ALB_213-p01H10	4	10
-samples2population=/path/to/samples_in_myPopulation.txt
+samples2population=/bioinfo1/projects/bean/duplicates/samples_duplicates.txt
 
-# Specify a list of predefined variants in a VCF file with its full path.
-# This file is produced after running NGSEP MergeVariants with a 
-# (preferably large) set of VCF files.
-myVariants=/bioinfo1/projects/bean/WGS/v2.1/genotyping/Variants_WGS_tpg_noGenotype.vcf.gz
 
 # The following variables define the file extension that the BAM and VCF files have in 
 # the location specified in the '/path/to/sample' of 'samples2population' (1st column). 
@@ -54,17 +47,19 @@ myVariants=/bioinfo1/projects/bean/WGS/v2.1/genotyping/Variants_WGS_tpg_noGenoty
 # '/path/to/sample_bowtie2_sorted.bam' and '/path/to/sample_bowtie2_NGSEP.vcf'
 BAMext=bowtie2_sorted.bam
 VCFext=bowtie2_NGSEP
+QCext=bowtie2_NGSEP_QC.vcf.gz
 
   # Path to Software used
 
-NGSEP=/path/to/software/NGSEP/NGSEPcore_3.3.0.jar
-samtoolsExec=/path/to/software/samtools
-bgzip=/path/to/software/bgzip
+NGSEP=/home/dariza/software/NGSEP/NGSEPcore_4.0.0.jar
+samtools=/home/dariza/bin/samtools
+bgzip=/usr/bin/bgzip
+bcftools=/home/dariza/bin/bcftools
 
   # Reference genome files
 
-REF=/path/to/references/Pvulgaris_442_v2.0.fa
-STRs=/path/to/references/Pvulgaris_v2_strs.list
+REF=/bioinfo1/references/bean/Pvulgaris/G19833/v2.1/bowtie2/Pvulgaris_442_v2.0.fa
+STRs=/bioinfo1/references/bean/Pvulgaris/G19833/v2.1/STRs/Pvulgaris_v2_strs.list
 
 
 #### ---------------------------------------------------------------------- ####
@@ -91,20 +86,20 @@ cd ${WD}/genotyping
 
 # Create a single file containing the samples to be included in every VCF.
 
-# Take the whole list of samples, and strip the -p*
-samples=(`grep -v '^#' ${samples2population} | cut -f 2 | sed 's/-p.*//' | tr '\n' ' '`)
+# Take the whole list of samples
+samples=(`grep -v '^#' ${samples2population} | cut -f 2 | tr '\n' ' '`)
 # Get the list of duplicated samples from the whole list
-sampleIDs=(`grep -v '^#' ${samples2population} | cut -f 2 | sed 's/-p.*//' |  sort -d | uniq -d | tr '\n' ' '`)
+dupSamples=(`grep -v '^#' ${samples2population} | cut -f 2 | sort -d | uniq -d | tr '\n' ' '`)
 # Get the location for each sample's BAM and VCF files
 locations=(`grep -v '^#' ${samples2population} | cut -f 1 | tr '\n' ' '`)
 
-echo -e '\nThis run contains '${#sampleIDs[@]}' samples sequenced more than once:\n' ${sampleIDs[@]} '\n'
+echo -e '\nThis run contains '${#dupSamples[@]}' samples sequenced more than once:\n' ${dupSamples[@]} '\n'
 
 for index in ${!samples[@]}
 do
 
 # For each sample containing duplicates, put all its rows in an individual file named as the sample itself
-  if [[ " ${sampleIDs[@]} " =~ " ${samples[${index}]} " ]]
+  if [[ " ${dupSamples[@]} " =~ " ${samples[${index}]} " ]]
   then
     index2=`expr ${index} + 1`
     grep -v '^#' ${samples2population} | sed -n -e ${index2}p >> ${samples[${index}]}.tmp
@@ -125,7 +120,7 @@ do
 done
 
 
-#### -------- Find Variants ------- ####
+#### ------ Bring QC Variants ----- ####
 
 cd ${WD}/genotyping
 
@@ -137,7 +132,7 @@ do
   myNum=`expr ${myNum} + ${#TMPs[@]}`; echo -e 'No. of samples assigned: '${myNum}'\n'
 
  ( for sample in ${TMPs[@]}
-  do  sleep 5
+  do  sleep 2
 
     echo -e $(date) 'Running all the analyses on '${sample}
 
@@ -151,33 +146,17 @@ do
     Ithree=(`grep -v '^#' ${sample} | cut -f 4 | tr '\n' ' '`)
     # Get the maximum ignore3 from the previous array
     i3=`echo ${Ithree[@]} | tr ' ' '\n' | sort -nr | head -1`
-    sampName=`grep -v '^#' ${sample} | cut -f 2 | sed 's/-p.*//' | uniq`
+    sampName=`grep -v '^#' ${sample} | cut -f 2 | uniq`
 
     mkdir ${sampName}
-    echo -e '\nThe sample '${sampName}' was sequenced '${#list[@]}' times:\n'${list[@]}'\n' \
+    echo -e '\nThe sample '${sampName}' was sequenced '${#list[@]}' times:\n'${locations[@]}'\n' \
     >> ${WD}/genotyping/${sampName}/${sampName}_compRepeats.log
 
     for index in ${!list[@]}
     do
 
-      ln -s ${locations[${index}]}_${BAMext} ./${sampName}/${list[${index}]}_${BAMext}
-
-      echo $(date) 'Genotyping population variants in '${list[${index}]} >> ${WD}/genotyping/${sampName}/${sampName}_compRepeats.log
-
-      java -Xmx20g -jar ${NGSEP} FindVariants -h 0.0001 -maxBaseQS 30 \
-      -minQuality 0 -maxAlnsPerStartPos 100 \
-      -ignore5 ${Ifive[${index}]} -ignore3 ${Ithree[${index}]} \
-      -sampleId ${list[${index}]} -knownVariants ${myVariants} ${REF} \
-      ./${sampName}/${list[${index}]}_${BAMext} \
-      ./${sampName}/${list[${index}]}_${VCFext}_gt \
-      >& ./${sampName}/${list[${index}]}_${VCFext}_gt.log
-
-      ################
-      if [[ ! `tail -1 ./${sampName}/${list[${index}]}_${VCFext}_gt.log` == *Completed* ]]
-        then echo "Error: Find variants in "${list[${index}]}" failed at some point !!" 
-        echo "Error during execution of Find variants" >> ${WD}/genotyping/${sampName}/${sampName}_compRepeats.log
-      fi 
-      ################
+      ln -s ${locations[${index}]}*-p*${QCext} ./${sampName}/
+      ln -s ${locations[${index}]}_${BAMext} ./${sampName}/${index}_${BAMext}
 
     done
 
@@ -186,51 +165,45 @@ do
 
     echo $(date) 'Merging and filtering VCF file for '${sampName} >> ${WD}/genotyping/${sampName}/${sampName}_compRepeats.log
 
-    for q in ${quality[@]}
-    do
+    for QC in ${WD}/genotyping/${sampName}/*${QCext} ; do tabix -p vcf ${QC}; done
 
-      java -Xmx10g -jar ${NGSEP} MergeVCF ${refIDs} \
-      ${WD}/genotyping/${sampName}/${sampName}*_gt.vcf | \
-      java -Xmx6g -jar ${NGSEP} FilterVCF -q ${q} \
-      /dev/stdin > ${WD}/genotyping/${sampName}/${sampName}_q${q}.vcf
+    ${bcftools} merge -Ou ${WD}/genotyping/${sampName}/*${QCext} | \
+      ${bcftools} filter -Oz -o ${WD}/genotyping/${sampName}/${sampName}_q60.vcf.gz -S . -i 'GQ[*]>=60'
 
-      ################
-      test ! -s ${WD}/genotyping/${sampName}/${sampName}_q${q}.vcf \
-      && echo "Error: Merge or filter failed for "${sampName}" and Q "${q}" at some point !!" \
-      >> ${WD}/genotyping/${sampName}/${sampName}_compRepeats.log \
-      && continue
-      ################
-
-    rm ${WD}/genotyping/${sampName}/${sampName}*_gt.log
+    ################
+    if LC_ALL=C gzip -l ${WD}/genotyping/${sampName}/${sampName}_q60.vcf.gz | awk 'NR==2 {exit($2==0)}'
+    then
+      echo "Error: Merge or filter failed for "${sampName}" and Q 60 at some point !!" \
+      >> ${WD}/genotyping/${sampName}/${sampName}_compRepeats.log
+      continue
+    fi
+    ################
 
 
-  #### -------- Compare VCF --------- ####
+#### -------- Compare VCF --------- ####
 
-      echo $(date) 'Comparing VCF file for '${sampName} >> ${WD}/genotyping/${sampName}/${sampName}_compRepeats.log
-  
-      java -Xmx6g -jar ${NGSEP} CompareVCF -g 0 -d 100 ${REF} \
-      ${WD}/genotyping/${sampName}/${sampName}_q${q}.vcf \
-      ${WD}/genotyping/${sampName}/${sampName}_q${q}.vcf \
-      > ${WD}/genotyping/${sampName}/${sampName}_CompareVCF_q${q}.txt
+    echo $(date) 'Comparing VCF file for '${sampName} >> ${WD}/genotyping/${sampName}/${sampName}_compRepeats.log
 
-      ################
-      test ! -s ${WD}/genotyping/${sampName}/${sampName}_CompareVCF_q${q}.txt \
-      && echo "Error: CompareVCF failed for "${sampName}" at some point !!" \
-      && echo "Error during execution of CompareVCF" >> ${WD}/genotyping/${sampName}/${sampName}_compRepeats.log \
-      && continue
-      ################
+    java -Xmx6g -jar ${NGSEP} VCFComparator -g 0 -d 100 -r ${REF} \
+    -i ${WD}/genotyping/${sampName}/${sampName}_q60.vcf.gz \
+    -o ${WD}/genotyping/${sampName}/${sampName}_CompareVCF_q60.txt \
+    >& ${WD}/genotyping/${sampName}/${sampName}_compRepeats.log
 
-    done
+    ################
+    test ! -s ${WD}/genotyping/${sampName}/${sampName}_CompareVCF_q60.txt \
+    && echo "Error: CompareVCF failed for "${sampName}" at some point !!" \
+    && echo "Error during execution of CompareVCF" >> ${WD}/genotyping/${sampName}/${sampName}_compRepeats.log \
+    && continue
+    ################
 
-     rm ${WD}/genotyping/${sampName}/${sampName}_q*.vcf \
-     ${WD}/genotyping/${sampName}/${sampName}*_gt.vcf
+     rm ${WD}/genotyping/${sampName}/${sampName}*${QCext}*
 
   #### -------- Merge BAMs --------- ####
 
     echo $(date) 'Merging BAMs of '${sampName}' files' >> ${WD}/genotyping/${sampName}/${sampName}_compRepeats.log
 
-    ${samtoolsExec} merge ${WD}/genotyping/${sampName}/${sampName}_${BAMext} \
-    ${WD}/genotyping/${sampName}/${sampName}*_${BAMext}
+    ${samtools} merge ${WD}/genotyping/${sampName}/${sampName}_${BAMext} \
+    ${WD}/genotyping/${sampName}/*_${BAMext}
 
     ################
     test ! -s ${WD}/genotyping/${sampName}/${sampName}_${BAMext} \
@@ -245,11 +218,11 @@ do
     echo $(date) 'Genotyping population variants from the combined BAMs for '${sampName} \
     >> ${WD}/genotyping/${sampName}/${sampName}_compRepeats.log
 
-    java -Xmx3g -jar ${NGSEP} FindVariants -h 0.0001 -maxBaseQS 30 \
-    -minQuality 40 -maxAlnsPerStartPos 100 \
+    java -Xmx3g -jar ${NGSEP} SingleSampleVariantsDetector \
+    -h 0.0001 -maxBaseQS 30 -minQuality 40 -maxAlnsPerStartPos 100 \
     -ignore5 ${i5} -ignore3 ${i3} -sampleId ${sampName} -knownSTRs ${STRs} \
-    ${REF} ${WD}/genotyping/${sampName}/${sampName}_${BAMext} \
-    ${WD}/genotyping/${sampName}/${sampName}_${VCFext} \
+    -r ${REF} -i ${WD}/genotyping/${sampName}/${sampName}_${BAMext} \
+    -o ${WD}/genotyping/${sampName}/${sampName}_${VCFext} \
     >& ${WD}/genotyping/${sampName}/${sampName}_${VCFext}.log
     ${bgzip} ${WD}/genotyping/${sampName}/${sampName}_${VCFext}.vcf
 
@@ -261,9 +234,9 @@ do
     fi 
     ################
 
-    if ! grep 'Error' ${WD}/genotyping/${sampName}/${sampName}_compRepeats.log
-      then rm ${WD}/genotyping/${sampName}/${sampName}_compRepeats.log
-    fi
+    # if ! grep 'Error' ${WD}/genotyping/${sampName}/${sampName}_compRepeats.log
+    #   then rm ${WD}/genotyping/${sampName}/${sampName}_compRepeats.log
+    # fi
 
     echo -e ${WD}'/genotyping/'${sampName}/${sampName}'\t'${sampName}'\t'${i5}'\t'${i3} >> ${samples2population}
 
@@ -272,6 +245,6 @@ do
 done
 wait
 
-rm ${WD}/genotyping/*tmp ${refIDs} ${WD}/genotyping/*/*-p*_${BAMext}
+rm ${WD}/genotyping/*tmp ${refIDs} ${WD}/genotyping/*/?_${BAMext} ${WD}/genotyping/*/*_bowtie2_NGSEP.log
 
 echo -e '\nCompareRepeatedSamples for '${popName}' files seems to be completed successfully\n' $(date)
